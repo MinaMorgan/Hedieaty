@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
 
+import '/screens/profile/profile_page.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -117,7 +119,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: Icon(Icons.person, size: 24),
                 color: _selectedIndex == 3 ? Color(0xFF4FC3F7) : Colors.white,
-                onPressed: () => _onItemTapped(3),
+                onPressed: () => ProfilePage(),
               ),
             ],
           ),
