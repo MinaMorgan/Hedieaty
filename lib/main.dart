@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'screens/home.dart';
+import '/screens/home/home_page.dart';
+import '/screens/profile/profile_page.dart';
+
 
 void main() => runApp(HedieatyApp());
 
@@ -14,7 +16,7 @@ class HedieatyApp extends StatelessWidget {
         primarySwatch: Colors.yellow,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: HomePage(),
+      home: ProfilePage(),
     );
   }
 }
