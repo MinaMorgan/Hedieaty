@@ -49,6 +49,15 @@ class ProfilePage extends StatelessWidget {
                 // Handle notification setting change
               },
             ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UpdateInfoPage()),
+                );
+              },
+              child: Text('My Pledged Gifts'),
+            ),
           ],
         ),
       ),
