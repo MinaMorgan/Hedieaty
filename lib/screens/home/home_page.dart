@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
-
 import '/screens/profile/profile_page.dart';
+import '/widgets/custom_bottom_navigation_bar.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -21,6 +21,12 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ProfilePage()),
+      );
+    }
   }
 
   @override
@@ -28,8 +34,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: GradientAppBar(
         title: Text('Hedieaty\nWelcome Mina'),
-        gradient: LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)], // Deep blue to soft teal
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
         ),
         actions: [
           IconButton(
@@ -80,7 +86,6 @@ class _HomePageState extends State<HomePage> {
       ),
 
 
-
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () {
       //     // Action for the central floating button
@@ -91,39 +96,10 @@ class _HomePageState extends State<HomePage> {
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
 
-      bottomNavigationBar: SizedBox(
-        height: 56, // Set the height of BottomAppBar to a smaller size
-        child: BottomAppBar(
-          shape: const CircularNotchedRectangle(),
-          //notchMargin: 8.0,
-          color: Color(0xFF2F3E46), // Dark Slate Gray Background
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: Icon(Icons.home, size: 24), // Reduced icon size for a smaller BottomAppBar
-                color: _selectedIndex == 0 ? Color(0xFF4FC3F7) : Colors.white,
-                onPressed: () => _onItemTapped(0),
-              ),
-              IconButton(
-                icon: Icon(Icons.favorite, size: 24),
-                color: _selectedIndex == 1 ? Color(0xFF4FC3F7) : Colors.white,
-                onPressed: () => _onItemTapped(1),
-              ),
-              //SizedBox(width: 40), // Placeholder for the FAB
-              IconButton(
-                icon: Icon(Icons.notifications, size: 24),
-                color: _selectedIndex == 2 ? Color(0xFF4FC3F7) : Colors.white,
-                onPressed: () => _onItemTapped(2),
-              ),
-              IconButton(
-                icon: Icon(Icons.person, size: 24),
-                color: _selectedIndex == 3 ? Color(0xFF4FC3F7) : Colors.white,
-                onPressed: () => ProfilePage(),
-              ),
-            ],
-          ),
-        ),
+
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }
