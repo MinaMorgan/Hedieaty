@@ -4,25 +4,20 @@ import 'update_info_page.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _selectedIndex = 3; // Default to profile tab
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Add navigation for other tabs if needed
-  }
+  final int _selectedIndex = 3; // Default to profile tab
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GradientAppBar(
-        title: Text('Profile'),
+        title: const Text('Profile'),
         gradient: const LinearGradient(
         colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
         ),
@@ -61,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SwitchListTile(
-              title: Text('Enable Notifications'),
+              title: const Text('Enable Notifications'),
               value: true,
               onChanged: (bool value) {
                 // Handle notification toggle
@@ -70,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF1E88E5)),
-              child: Text(
+              child: const Text(
                   'My Pledged Gifts',
                   style: TextStyle(color: Colors.white),
               ),
@@ -80,7 +75,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
       ),
     );
   }
