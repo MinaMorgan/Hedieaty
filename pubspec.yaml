@@ -64,6 +64,7 @@ flutter:
     - Assets/images/Mark.jfif
     - Assets/images/Tim.jfif
     - Assets/images/Jensen.jfif
+    - Assets/images/profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
 
 class UpdateInfoPage extends StatefulWidget {
   @override
@@ -12,8 +13,11 @@ class _UpdateInfoPageState extends State<UpdateInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: GradientAppBar(
         title: Text('Update Personal Information'),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -45,7 +49,11 @@ class _UpdateInfoPageState extends State<UpdateInfoPage> {
                 print('Updated Email: $updatedEmail');
                 Navigator.pop(context); // Return to previous page
               },
-              child: Text('Save Changes'),
+              style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF1E88E5)),
+              child: Text(
+                  'Save Changes',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
