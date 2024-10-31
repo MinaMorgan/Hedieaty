@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
+
 import 'update_info_page.dart';
+import '/screens/gifts/pledged_gifts_page.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -58,18 +60,37 @@ class _ProfilePageState extends State<ProfilePage> {
             SwitchListTile(
               title: const Text('Enable Notifications'),
               value: true,
+              activeColor: Colors.white,
+              activeTrackColor: Color(0xFF1E88E5),
               onChanged: (bool value) {
                 // Handle notification toggle
               },
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PledgedGiftsPage()),
+                );
+              },
+
               style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF1E88E5)),
               child: const Text(
                   'My Pledged Gifts',
                   style: TextStyle(color: Colors.white),
               ),
             ),
+            Expanded(
+              child: Container(), // Or other content to fill the remaining space
+            ),
+            TextButton(
+                onPressed: () {},
+                //style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Log Out',
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                ),
+              ),
           ],
         ),
       ),
