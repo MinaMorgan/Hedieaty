@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
 
 import '/screens/event/add_event_page.dart';
+import '/screens/gifts/gifts_page.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 
 class EventsPage extends StatefulWidget {
@@ -17,19 +18,19 @@ class _EventsPageState extends State<EventsPage> {
     {
       'title': 'My Birthday Celebration',
       'description':
-          'Celebrating my birthday with close friends and family. I would love thoughtful gifts like books, tech gadgets, or even handmade items.',
+      'Celebrating my birthday with close friends and family. I would love thoughtful gifts like books, tech gadgets, or even handmade items.',
       'date': '2024-10-30',
     },
     {
       'title': 'Graduation Party',
       'description':
-          'It’s finally graduation day! If you’re thinking of bringing a gift, I’d appreciate anything memorable, like photo albums, personalized items, or even something for my new apartment.',
+      'It’s finally graduation day! If you’re thinking of bringing a gift, I’d appreciate anything memorable, like photo albums, personalized items, or even something for my new apartment.',
       'date': '2025-01-15',
     },
     {
       'title': 'Engagement Celebration',
       'description':
-          'Join us in celebrating my engagement! If you’re considering a gift, something for our new life together like dinnerware or bedding would be perfect.',
+      'Join us in celebrating my engagement! If you’re considering a gift, something for our new life together like dinnerware or bedding would be perfect.',
       'date': '2025-03-10',
     }
   ];
@@ -65,18 +66,18 @@ class _EventsPageState extends State<EventsPage> {
         itemBuilder: (context, index) {
           final event = events[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.0),
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
             child: ListTile(
               title: Text(
                 event['title']!,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 4.0),
-                  Text(event['description']!, style: TextStyle(fontSize: 14)),
-                  SizedBox(height: 8.0),
+                  const SizedBox(height: 4.0),
+                  Text(event['description']!, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(height: 8.0),
                   Text(
                     'Date: ${event['date']}',
                     style: TextStyle(color: Colors.grey[600]),
@@ -84,19 +85,11 @@ class _EventsPageState extends State<EventsPage> {
                 ],
               ),
               onTap: () {
-                // Show event details in an AlertDialog
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(event['title']!),
-                    content:
-                        Text('More details about "${event['title']}" event.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text('Close'),
-                      ),
-                    ],
+                // Navigate to GiftsPage and pass event data
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GiftsPage(eventTitle: event['title']!),
                   ),
                 );
               },
