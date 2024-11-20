@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '/screens/home/home_page.dart';
 import '/screens/event/events_page.dart';
-//import '/screens/gifts_page.dart'; // Replace with the actual path
 import '/screens/profile/profile_page.dart';
 
 
@@ -24,9 +24,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
         targetPage = const EventsPage(); // Events page
         break;
       case 2:
-        targetPage = const HomePage(); // Gifts page
-        break;
-      case 3:
         targetPage = const ProfilePage(); // Profile page
         break;
       default:
@@ -54,19 +51,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
               onPressed: () => _navigateToPage(context, 0),
             ),
             IconButton(
-              icon: const Icon(Icons.event, size: 24),
+              icon: const Icon(Icons.card_giftcard, size: 24),
               color: currentIndex == 1 ? Color(0xFF4FC3F7) : Colors.white,
               onPressed: () => _navigateToPage(context, 1),
             ),
             IconButton(
-              icon: const Icon(Icons.card_giftcard, size: 24),
+              icon: const Icon(Icons.person, size: 24),
               color: currentIndex == 2 ? Color(0xFF4FC3F7) : Colors.white,
               onPressed: () => _navigateToPage(context, 2),
-            ),
-            IconButton(
-              icon: const Icon(Icons.person, size: 24),
-              color: currentIndex == 3 ? Color(0xFF4FC3F7) : Colors.white,
-              onPressed: () => _navigateToPage(context, 3),
             ),
           ],
         ),
