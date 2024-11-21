@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
+import '/widgets/gradient_appbar.dart';
 
 
-class PledgedGiftsPage extends StatefulWidget {
-  @override
-  _PledgedGiftsPageState createState() => _PledgedGiftsPageState();
-}
-
-class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
+class PledgedGiftsPage extends StatelessWidget {
+  const PledgedGiftsPage({super.key});
   // List of pledged gifts with initial dummy data
-  List<Map<String, String>> pledgedGifts = [
+  static const List<Map<String, String>> pledgedGifts = [
     {
       'giftName': 'Photo Album',
       'friendName': 'Alice Johnson',
@@ -30,27 +26,10 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
     },
   ];
 
-  // Function to handle editing a gift
-  void _editGift(int index) {
-    setState(() {
-      // For demonstration, we'll toggle the status of the gift
-      pledgedGifts[index]['status'] =
-      pledgedGifts[index]['status'] == 'Pending' ? 'Completed' : 'Pending';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Updated ${pledgedGifts[index]['giftName']} status')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GradientAppBar(
-        title: const Text('Pledged Gifts'),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
-        ),
-      ),
+      appBar: GradientAppBar(title: 'Pledged Gifts'),
       body: ListView.builder(
         padding: const EdgeInsets.all(8.0),
         itemCount: pledgedGifts.length,
@@ -76,12 +55,6 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                   ),
                 ],
               ),
-              trailing: gift['status'] == 'Pending'
-                  ? IconButton(
-                icon: Icon(Icons.edit, color: Colors.blue),
-                onPressed: () => _editGift(index),
-              )
-                  : null,
             ),
           );
         },

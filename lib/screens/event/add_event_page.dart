@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
+import '/widgets/gradient_appbar.dart';
+
 
 class AddEventPage extends StatelessWidget {
+  const AddEventPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GradientAppBar(
-        title: const Text('Add New Events'),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
-        ),
-      ),
+      appBar: const GradientAppBar(title: 'Add New Events'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

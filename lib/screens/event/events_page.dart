@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
-
-import '/screens/event/add_event_page.dart';
-import '/screens/gifts/gifts_page.dart';
+import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
+import '/screens/gifts/gifts_page.dart';
 
-class EventsPage extends StatefulWidget {
+
+class EventsPage extends StatelessWidget {
   const EventsPage({super.key});
-
-  @override
-  _EventsPageState createState() => _EventsPageState();
-}
-
-class _EventsPageState extends State<EventsPage> {
   // Dummy data for the events list
-  final List<Map<String, String>> events = [
+  static const List<Map<String, String>> events = [
     {
       'title': 'My Birthday Celebration',
       'description':
@@ -35,31 +28,12 @@ class _EventsPageState extends State<EventsPage> {
     }
   ];
 
-  void _addNewEvent() {
-    // Navigate to the AddEventPage to add a new event
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddEventPage()),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GradientAppBar(
-        title: const Text('Events'),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              _addNewEvent();
-            },
-          ),
-        ],
-      ),
+      appBar: const GradientAppBar(title: 'Events', showButton: true),
       body: ListView.builder(
         padding: const EdgeInsets.all(8.0),
         itemCount: events.length,

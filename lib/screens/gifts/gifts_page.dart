@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
+import '/widgets/gradient_appbar.dart';
+
 
 class GiftsPage extends StatelessWidget {
   final String eventTitle;
@@ -42,18 +43,7 @@ class GiftsPage extends StatelessWidget {
         gifts.where((gift) => gift['event'] == eventTitle).toList();
 
     return Scaffold(
-      appBar: GradientAppBar(
-        title: Text('Gifts for $eventTitle'),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: GradientAppBar(title: 'Gifts for $eventTitle', showButton: true),
       body: ListView.builder(
         padding: const EdgeInsets.all(8.0),
         itemCount: relatedGifts.length,

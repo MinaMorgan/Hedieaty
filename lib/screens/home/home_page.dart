@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gradient_app_bar/flutter_gradient_app_bar.dart';
-
+import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,35 +11,80 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final int _selectedIndex = 0;
+  final TextEditingController _emailController = TextEditingController();
 
   final List<Map<String, dynamic>> friends = [
-    {'name': 'Mark Zuckerberg', 'eventCount': 3, 'profilePic': 'Assets/images/Mark.jfif'},
-    {'name': 'Tim Cook', 'eventCount': 0, 'profilePic': 'Assets/images/Tim.jfif'},
-    {'name': 'Jensen Huang', 'eventCount': 1, 'profilePic': 'Assets/images/Jensen.jfif'},
+    {
+      'name': 'Mark Zuckerberg',
+      'eventCount': 3,
+      'profilePic': 'Assets/images/Mark.jfif'
+    },
+    {
+      'name': 'Tim Cook',
+      'eventCount': 0,
+      'profilePic': 'Assets/images/Tim.jfif'
+    },
+    {
+      'name': 'Jensen Huang',
+      'eventCount': 1,
+      'profilePic': 'Assets/images/Jensen.jfif'
+    },
   ];
+
+  void _showAddFriendDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Friend'),
+          content: TextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              labelText: 'Enter Email',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Add your friend-adding logic here
+                print('Adding friend with email: ${_emailController.text}');
+                Navigator.pop(context); // Close the dialog
+                _emailController.clear();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GradientAppBar(
-        title: const Text('Hedieaty'),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF1E88E5)],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Navigate to create event or gift list page
-            },
-          ),
-        ],
-      ),
+      appBar: const GradientAppBar(title: "Hedieaty", showButton: true),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search friends...',
