@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
-import '/screens/auth/register_page.dart';
+import '/models/user.dart';
 
 class LoginPage extends StatelessWidget {
+  LoginPage({super.key});
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  Future<bool> login() async {
+    final user = User(
+      name:"",
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+    bool isUserValid = await user.getUser();
+    return isUserValid;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +38,11 @@ class LoginPage extends StatelessWidget {
                 const Text(
                   'Hedieaty',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 50,),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 50,
+                  ),
                 ),
                 const SizedBox(
                   height: 50,
@@ -58,21 +74,16 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24.0),
                 ElevatedButton(
-                  onPressed: () {
-                    // Add login logic here
-                    print('Logging in with email: ${_emailController.text}');
+                  onPressed: () async {
+                    if (await login()) {
+                      Navigator.pushReplacementNamed(context, '/');
+                    }
                   },
-                  //style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
                   child: const Text('Login'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to Register Page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterPage()),
-                    );
-                  },
+                  onPressed: () =>
+                      Navigator.pushReplacementNamed(context, '/register'),
                   child: const Text(
                     'Don’t have an account? Register here',
                     style: TextStyle(color: Colors.white),
