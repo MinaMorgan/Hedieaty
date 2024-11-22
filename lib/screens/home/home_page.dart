@@ -10,7 +10,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final int _selectedIndex = 0;
   final TextEditingController _emailController = TextEditingController();
 
   final List<Map<String, dynamic>> friends = [

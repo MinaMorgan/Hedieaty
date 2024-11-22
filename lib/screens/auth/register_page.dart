@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/models/user.dart';
+import '../../controller/user.dart';
 
 
 class RegisterPage extends StatelessWidget {

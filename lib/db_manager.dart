@@ -19,8 +19,7 @@ class DatabaseManager {
   // Initialize the models
   Future<Database> _initDatabase() async {
     final dir = await getApplicationDocumentsDirectory();
-    final path = join(dir.path, 'hedieaty.db'); // Path for local database
-    print(dir.path);
+    final path = join(dir.path, 'hedieaty.db');
 
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }

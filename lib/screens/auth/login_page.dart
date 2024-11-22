@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/models/user.dart';
+import '../../controller/user.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -14,6 +14,7 @@ class LoginPage extends StatelessWidget {
       password: _passwordController.text,
     );
     bool isUserValid = await user.getUser();
+    print(await user.getUsers()); // remove
     return isUserValid;
   }
 

@@ -25,4 +25,8 @@ class User {
   Future<bool> getUser() async {
     return await dbHelper.getUser(email, password);
   }
+
+  Future<List<Map<String, dynamic>>> getUsers() async {
+    return await dbHelper.getUsers();
+  }
 }
