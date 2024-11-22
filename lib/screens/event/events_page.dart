@@ -71,9 +71,7 @@ class EventsPage extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: const CustomBottomNavigationBar(
-        currentIndex: 1, // Set to 1 to highlight the "Events" tab
-      ),
+      bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }

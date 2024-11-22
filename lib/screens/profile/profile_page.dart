@@ -4,7 +4,6 @@ import '/widgets/custom_bottom_navigation_bar.dart';
 import '/screens/gifts/pledged_gifts_page.dart';
 import 'update_info_page.dart';
 
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -46,7 +45,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   MaterialPageRoute(builder: (context) => UpdateInfoPage()),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E88E5)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5)),
               child: const Text(
                 'Edit Profile Information',
                 style: TextStyle(color: Colors.white),
@@ -68,30 +68,30 @@ class _ProfilePageState extends State<ProfilePage> {
                   MaterialPageRoute(builder: (context) => PledgedGiftsPage()),
                 );
               },
-
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E88E5)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5)),
               child: const Text(
-                  'My Pledged Gifts',
-                  style: TextStyle(color: Colors.white),
+                'My Pledged Gifts',
+                style: TextStyle(color: Colors.white),
               ),
             ),
             Expanded(
-              child: Container(), // Or other content to fill the remaining space
+              child:
+                  Container(), // Or other content to fill the remaining space
             ),
             TextButton(
-                onPressed: () {},
-                //style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text(
-                  'Log Out',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              //style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text(
+                'Log Out',
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-      ),
+      bottomNavigationBar: CustomBottomNavigationBar(),
     );
   }
 }
