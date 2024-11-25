@@ -3,6 +3,8 @@ import '/widgets/gradient_appbar.dart';
 
 
 class UpdateInfoPage extends StatefulWidget {
+  const UpdateInfoPage({super.key});
+
   @override
   _UpdateInfoPageState createState() => _UpdateInfoPageState();
 }

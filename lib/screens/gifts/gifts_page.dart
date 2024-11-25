@@ -5,7 +5,7 @@ import '/widgets/gradient_appbar.dart';
 class GiftsPage extends StatelessWidget {
   final String eventTitle;
 
-  GiftsPage({required this.eventTitle});
+  GiftsPage({super.key, required this.eventTitle});
 
   // Dummy data for gifts associated with each event
   final List<Map<String, String>> gifts = [

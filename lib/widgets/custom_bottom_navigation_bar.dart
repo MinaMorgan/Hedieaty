@@ -18,7 +18,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.home, size: 24),
               color: Colors.white,
-              onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
             ),
             IconButton(
               icon: const Icon(Icons.card_giftcard, size: 24),
