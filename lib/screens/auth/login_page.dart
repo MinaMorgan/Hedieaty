@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../controller/user.dart';
+import 'package:hedieaty/models/user.dart';
+import '/globals.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // Controllers for email and password fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Key for form validation
+  final _formKey = GlobalKey<FormState>();
+
+  // Function to handle login logic
   Future<bool> login() async {
-    final user = User(
-      name:"",
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
-    bool isUserValid = await user.getUser();
-    print(await user.getUsers()); // remove
-    return isUserValid;
+    String email = _emailController.text;
+    String password = _passwordController.text;
+
+    UserModel? user = await firebaseService.login(email, password);
+    if (user != null) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -32,65 +43,92 @@ class LoginPage extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Hedieaty',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 50,
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+            child: Form(
+              key: _formKey, // Add the form key here
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Hedieaty',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 50,
                     ),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 50),
+                  // Email field with validation
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email';
+                      } else if (!RegExp(
+                              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$") // edit
+                          .hasMatch(value)) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Password field with validation
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      return null; // Return null if validation passes
+                    },
+                  ),
+                  const SizedBox(height: 24.0),
+                  // Login button
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Check if the form is valid
+                      if (_formKey.currentState?.validate() ?? false) {
+                        if (await login()) {
+                          Navigator.pushReplacementNamed(context, '/home');
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Login failed')),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text('Login'),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.pushReplacementNamed(context, '/register'),
+                    child: const Text(
+                      'Don’t have an account? Register here',
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 24.0),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (await login()) {
-                      Navigator.pushReplacementNamed(context, '/');
-                    }
-                  },
-                  child: const Text('Login'),
-                ),
-                TextButton(
-                  onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/register'),
-                  child: const Text(
-                    'Don’t have an account? Register here',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

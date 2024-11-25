@@ -3,6 +3,8 @@ import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 import '/screens/gifts/pledged_gifts_page.dart';
 import 'update_info_page.dart';
+import '/globals.dart';
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,7 +14,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final int _selectedIndex = 3; // Default to profile tab
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +81,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   Container(), // Or other content to fill the remaining space
             ),
             TextButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              onPressed: () async{
+                await firebaseService.signOut();
+                Navigator.pushReplacementNamed(context, '/login');
+              },
               //style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text(
                 'Log Out',
