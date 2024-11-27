@@ -62,6 +62,22 @@ class FirebaseService {
     return null;
   }
 
+  User? get currentUser {
+    return _auth.currentUser;
+  }
+
+  // review with profile page
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserDetails() async {
+    var userId = currentUser?.uid;
+    if (userId != null) {
+      return await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+    }
+    throw Exception("User not logged in");
+  }
+
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
