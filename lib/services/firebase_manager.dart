@@ -1,7 +1,8 @@
-// firebase_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user.dart';
+import 'dart:io';
+import '/services/image_uploader.dart';
+import '/models/user.dart';
 
 class FirebaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,18 +10,23 @@ class FirebaseService {
 
   //////////////////////////////////////////// Users ////////////////////////////////////////////
   // Sign up
-  Future<UserModel?> signUp(
-      String name, String phoneNumber, String email, String password) async {
+  Future<UserModel?> signUp(File? photo, String name, String phoneNumber,
+      String email, String password) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       User? firebaseUser = result.user;
+      String? photoURL;
+      if (photo != null) {
+        photoURL = await ImageUploadService().uploadImageToImgur(photo);
+      }
 
       if (firebaseUser != null) {
         UserModel user = UserModel(
           id: firebaseUser.uid,
+          photoURL: photoURL,
           name: name,
           phoneNumber: phoneNumber,
           email: email,

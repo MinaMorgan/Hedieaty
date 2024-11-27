@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '/models/user.dart';
 import '/globals.dart';
 
@@ -10,23 +12,34 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _formKey =
-      GlobalKey<FormState>(); // Create a global key for form validation
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  File? _profileImage;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
 
   Future<bool> register() async {
+    File? photo = _profileImage;
     String name = _nameController.text;
     String phoneNumber = _phoneNumberController.text;
     String email = _emailController.text;
     String password = _passwordController.text;
 
     UserModel? user =
-        await firebaseService.signUp(name, phoneNumber, email, password);
+        await firebaseService.signUp(photo, name, phoneNumber, email, password);
     if (user != null) {
       return true;
     }
@@ -49,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
-                key: _formKey, // Assign the form key to the form
+                key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -63,9 +76,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         fontSize: 50,
                       ),
                     ),
-                    const SizedBox(
-                      height: 50,
+                    const SizedBox(height: 30),
+                    // Display selected profile image or a placeholder
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!) as ImageProvider
+                            : AssetImage('assets/images/profile.png'), // edit
+                        child: _profileImage == null
+                            ? Icon(Icons.camera_alt,
+                                size: 40, color: Colors.white)
+                            : null,
+                      ),
                     ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
@@ -117,7 +143,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         } else if (!RegExp(
-                                r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$") // edit
+                                r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
                             .hasMatch(value)) {
                           return 'Please enter a valid email';
                         }
@@ -125,7 +151,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
                     const SizedBox(height: 16.0),
-                    // Password Field
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
@@ -145,7 +170,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
                     const SizedBox(height: 16.0),
-                    // Confirm Password Field
                     TextFormField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
