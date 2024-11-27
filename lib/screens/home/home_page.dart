@@ -16,17 +16,17 @@ class _HomePageState extends State<HomePage> {
     {
       'name': 'Mark Zuckerberg',
       'eventCount': 3,
-      'profilePic': 'Assets/images/Mark.jfif'
+      'profilePic': 'assets/images/profile.png'
     },
     {
       'name': 'Tim Cook',
       'eventCount': 0,
-      'profilePic': 'Assets/images/Tim.jfif'
+      'profilePic': 'assets/images/profile.png'
     },
     {
       'name': 'Jensen Huang',
       'eventCount': 1,
-      'profilePic': 'Assets/images/Jensen.jfif'
+      'profilePic': 'assets/images/profile.png'
     },
   ];
 
