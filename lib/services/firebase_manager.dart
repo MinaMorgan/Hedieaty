@@ -82,4 +82,42 @@ class FirebaseService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////// Events ////////////////////////////////////////////
+  // Add Event
+  Future<void> addEvent(Map<String, String> event) async {
+    try {
+      await FirebaseFirestore.instance.collection('events').add(event);
+      print("Event added successfully!");
+    } catch (e) {
+      print("Failed to add event: $e");
+    }
+  }
+  // Edit Event
+  Future<void> editEvent(
+      String eventId, Map<String, String> updatedEvent) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .update(updatedEvent);
+      print("Event updated successfully!");
+    } catch (e) {
+      print("Failed to update event: $e");
+    }
+  }
+  // Remove Event
+  Future<void> removeEvent(String eventId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .delete();
+      print("Event removed successfully!");
+    } catch (e) {
+      print("Failed to remove event: $e");
+    }
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////
 }
