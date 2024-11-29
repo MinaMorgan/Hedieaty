@@ -1,20 +1,19 @@
 // User Model
 class UserModel {
-  final String id;
-  final String? photoURL;
-  final String name;
-  final String phoneNumber;
-  final String email;
+  String id;
+  String photoURL;
+  String name;
+  String phoneNumber;
+  String email;
 
   UserModel(
       {required this.id,
-      this.photoURL =
-          'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
+      required this.photoURL,
       required this.name,
       required this.phoneNumber,
       required this.email});
 
-  Map<String, dynamic> toMap() {
+  Map<String, String> toMap() {
     return {
       'id': id,
       'photoURL': photoURL,
@@ -22,16 +21,6 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'email': email,
     };
-  }
-
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      id: map['id'],
-      photoURL: map['photoURL'],
-      name: map['name'],
-      phoneNumber: map['phoneNumber'],
-      email: map['email'],
-    );
   }
 /*
   // Method to insert this User into the database

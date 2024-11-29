@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '/models/user.dart';
-import '/globals.dart';
+import '/controller/user_controller.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,31 +19,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   File? _profileImage;
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<bool> register() async {
-    File? photo = _profileImage;
-    String name = _nameController.text;
-    String phoneNumber = _phoneNumberController.text;
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    UserModel? user =
-        await firebaseService.signUp(photo, name, phoneNumber, email, password);
-    if (user != null) {
-      return true;
-    }
-    return false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +173,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text('Registration failed')),
+                                content: Text('Registration failed'),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         }
@@ -222,5 +198,29 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  // Choose image from the device
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  // Register user
+  Future<bool> register() async {
+    File? photo = _profileImage;
+    String name = _nameController.text;
+    String phoneNumber = _phoneNumberController.text;
+    String email = _emailController.text;
+    String password = _passwordController.text;
+
+    final UserController controller = UserController();
+
+    return await controller.register(photo, name, phoneNumber, email, password);
   }
 }

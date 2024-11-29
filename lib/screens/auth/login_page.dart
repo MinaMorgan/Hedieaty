@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hedieaty/models/user.dart';
-import '/globals.dart';
+import '/controller/user_controller.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,18 +15,6 @@ class _LoginPageState extends State<LoginPage> {
 
   // Key for form validation
   final _formKey = GlobalKey<FormState>();
-
-  // Function to handle login logic
-  Future<bool> login() async {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    UserModel? user = await firebaseService.login(email, password);
-    if (user != null) {
-      return true;
-    }
-    return false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +99,10 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.pushReplacementNamed(context, '/home');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Login failed')),
+                            const SnackBar(
+                              content: Text('Login failed'),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       }
@@ -134,5 +124,15 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  // Function to handle login logic
+  Future<bool> login() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
+
+    final UserController controller = UserController();
+
+    return await controller.login(email, password);
   }
 }
