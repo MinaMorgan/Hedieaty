@@ -10,8 +10,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _emailController = TextEditingController();
-
   final List<Map<String, dynamic>> friends = [
     {
       'name': 'Mark Zuckerberg',
@@ -30,60 +28,22 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
-  void _showAddFriendDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Friend'),
-          content: TextField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              labelText: 'Enter Email',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Add your friend-adding logic here
-                print('Adding friend with email: ${_emailController.text}');
-                Navigator.pop(context); // Close the dialog
-                _emailController.clear();
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const GradientAppBar(title: "Hedieaty", showButton: true),
+      appBar: GradientAppBar(
+        title: 'Hedieaty',
+        showButton: true,
+        onButtonPressed: () {
+          Navigator.pushNamed(context, '/addFriend');
+        },
+      ),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search friends...',

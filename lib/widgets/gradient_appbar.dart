@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import '/screens/event/add_event_page.dart';
-
 
 class GradientAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final bool showButton;
+  final VoidCallback? onButtonPressed;
 
-  const GradientAppBar({super.key, required this.title, this.showButton = false});
+  const GradientAppBar({
+    super.key,
+    required this.title,
+    this.showButton = false,
+    this.onButtonPressed,
+  });
 
   @override
   _GradientAppBarState createState() => _GradientAppBarState();
@@ -35,18 +39,11 @@ class _GradientAppBarState extends State<GradientAppBar> {
             if (widget.showButton)
               IconButton(
                 icon: const Icon(Icons.add),
-                onPressed: _addNewEvent, // Call _addNewEvent when pressed
+                onPressed: widget.onButtonPressed, // Call the provided callback
               ),
           ],
         ),
       ),
-    );
-  }
-
-  void _addNewEvent() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddEventPage()),
     );
   }
 }

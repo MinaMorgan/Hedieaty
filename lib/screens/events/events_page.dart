@@ -6,7 +6,6 @@ import '/screens/gifts/gifts_page.dart';
 import '/controller/event_controller.dart';
 
 class EventsPage extends StatefulWidget {
-
   const EventsPage({super.key});
 
   @override
@@ -16,15 +15,19 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   final EventController controller = EventController();
 
-
   @override
   Widget build(BuildContext context) {
     final String userId = ModalRoute.of(context)!.settings.arguments as String;
     return Scaffold(
-      appBar: GradientAppBar(title: 'Events', showButton: true),
+      appBar: GradientAppBar(
+        title: 'Events',
+        showButton: true,
+        onButtonPressed: () {
+          Navigator.pushNamed(context, '/addEvent');
+        },
+      ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            controller.getEventsByUserId(userId),
+        stream: controller.getEventsByUserId(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

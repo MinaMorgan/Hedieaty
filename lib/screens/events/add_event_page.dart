@@ -117,7 +117,7 @@ class AddEventPage extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Save Event',
+                      'Create Event',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
