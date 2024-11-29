@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
+import '/services/sharedPreferences_manager.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
-
-  const CustomBottomNavigationBar({super.key});
-
+  CustomBottomNavigationBar({super.key});
+  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -23,7 +22,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.card_giftcard, size: 24),
               color: Colors.white,
-              onPressed: () => Navigator.pushReplacementNamed(context, '/events'),
+              onPressed: () async {
+                String userId = await sharedPreferences.getUserId();
+                Navigator.pushReplacementNamed(context, '/events', arguments: userId);
+              },
             ),
             IconButton(
               icon: const Icon(Icons.person, size: 24),
