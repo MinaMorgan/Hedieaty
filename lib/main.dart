@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '/screens/home/home_page.dart';
+import '/screens/friends/add_friend_page.dart';
 import '/screens/auth/login_page.dart';
 import '/screens/auth/register_page.dart';
 import '/screens/events/events_page.dart';
@@ -30,6 +31,7 @@ class HedieatyApp extends StatelessWidget {
         initialRoute: '/login',
         routes: {
           '/home': (context) => HomePage(),
+          '/addFriend': (context) => AddFriendPage(),
           '/login': (context) => LoginPage(),
           '/register': (context) => RegisterPage(),
           '/events': (context) => EventsPage(),

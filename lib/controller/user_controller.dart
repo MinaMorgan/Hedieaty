@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/services/sharedPreferences_manager.dart';
-
 import '/services/image_uploader.dart';
 import '/services/firebase_manager.dart';
 import '/models/user_model.dart';
@@ -61,6 +60,16 @@ class UserController {
   Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUserDetails() async {
     String userId = firebase.currentUser.uid;
     return await firebase.getUserDetails(userId);
+  }
+
+  // Get user details
+  Future<QuerySnapshot<Map<String, dynamic>>> getUserDetails(
+      bool isAddingByEmail, String input) async {
+      if (isAddingByEmail) {
+        return await firebase.getUserByEmail(input);
+      } else {
+        return await firebase.getUserByPhoneNumber(input);
+      }
   }
 
   // Log out
