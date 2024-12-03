@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '/services/sharedPreferences_manager.dart';
 import '/services/image_uploader.dart';
 import '/services/firebase_manager.dart';
@@ -14,8 +13,8 @@ class UserController {
   Future<bool> register(File? photo, String name, String phoneNumber,
       String email, String password) async {
     try {
-      UserCredential result = await firebase.authSignUp(email, password);
-      User? firebaseUser = result.user;
+      final result = await firebase.authSignUp(email, password);
+      final firebaseUser = result.user;
 
       String photoURL;
       if (photo != null) {
@@ -56,20 +55,26 @@ class UserController {
     }
   }
 
-  // Get current user details
+  // Get Current User Details
   Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUserDetails() async {
-    String userId = firebase.currentUser.uid;
+    String userId = await sharedPreferences.getUserId();
     return await firebase.getUserDetails(userId);
   }
 
-  // Get user details
+  // Get User Details by Id
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserDetailsById(
+      String id) async {
+    return await firebase.getUserDetails(id);
+  }
+
+  // Get User Details by Email or Phone Number
   Future<QuerySnapshot<Map<String, dynamic>>> getUserDetails(
       bool isAddingByEmail, String input) async {
-      if (isAddingByEmail) {
-        return await firebase.getUserByEmail(input);
-      } else {
-        return await firebase.getUserByPhoneNumber(input);
-      }
+    if (isAddingByEmail) {
+      return await firebase.getUserByEmail(input);
+    } else {
+      return await firebase.getUserByPhoneNumber(input);
+    }
   }
 
   // Log out

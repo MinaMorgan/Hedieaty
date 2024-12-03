@@ -24,13 +24,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
               color: Colors.white,
               onPressed: () async {
                 String userId = await sharedPreferences.getUserId();
-                Navigator.pushReplacementNamed(context, '/events', arguments: userId);
+                Navigator.pushReplacementNamed(context, '/events',
+                    arguments: {'userId': userId, 'showFull': true});
               },
             ),
             IconButton(
               icon: const Icon(Icons.person, size: 24),
               color: Colors.white,
-              onPressed: () => Navigator.pushReplacementNamed(context, '/profile'),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/profile'),
             ),
           ],
         ),

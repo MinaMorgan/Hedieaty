@@ -70,7 +70,7 @@ class FirebaseManager {
     await _firestore.collection('events').add(event);
   }
 
-  // Retrieve Events
+  // Get Events
   Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
     return _firestore
         .collection('events')
@@ -93,12 +93,31 @@ class FirebaseManager {
   //////////////////////////////////////////// Friends ////////////////////////////////////////////
   // Add Friend
   Future<void> addFriend(Map<String, String> friends) async {
-    // Add friend to the user's sub-collection
-    await FirebaseFirestore.instance
+    await _firestore
         .collection('users')
         .doc(friends['userId'])
         .collection('friends')
         .doc(friends['friendId'])
         .set({'friendId': friends['friendId']});
   }
+
+  // Get Friends Ids
+  Stream<QuerySnapshot<Map<String, dynamic>>> getFriendsIds(String userId)  {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('friends')
+        .snapshots();
+  }
+
+  // Get Friends Details
+  Future<QuerySnapshot<Map<String, dynamic>>> getFriendsDetails(
+      List<String> friendsIds) async {
+    return await _firestore
+        .collection('users')
+        .where(FieldPath.documentId, whereIn: friendsIds)
+        .get();
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
 }

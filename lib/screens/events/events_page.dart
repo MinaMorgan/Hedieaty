@@ -13,15 +13,25 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
+  late String userId;
+  late bool showFull;
   final EventController controller = EventController();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    userId = args['userId'];
+    showFull = args['showFull'];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String userId = ModalRoute.of(context)!.settings.arguments as String;
     return Scaffold(
       appBar: GradientAppBar(
         title: 'Events',
-        showButton: true,
+        showButton: showFull,
         onButtonPressed: () {
           Navigator.pushNamed(context, '/addEvent');
         },
@@ -64,10 +74,12 @@ class _EventsPageState extends State<EventsPage> {
                       ),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () => _editEvent(eventId, eventData),
-                  ),
+                  trailing: showFull
+                      ? IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editEvent(eventId, eventData),
+                        )
+                      : null,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -83,7 +95,7 @@ class _EventsPageState extends State<EventsPage> {
           );
         },
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(),
+      bottomNavigationBar: showFull ? CustomBottomNavigationBar() : null,
     );
   }
 

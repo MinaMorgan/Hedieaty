@@ -1,7 +1,8 @@
-import 'package:hedieaty/controller/user_controller.dart';
 import '/services/sharedPreferences_manager.dart';
 import '/services/firebase_manager.dart';
+import '/models/user_model.dart';
 import '/models/friend_model.dart';
+import '/controller/user_controller.dart';
 
 class FriendController {
   final FirebaseManager firebase = FirebaseManager();
@@ -28,6 +29,42 @@ class FriendController {
     } catch (e) {
       print('Error adding friend: $e');
       return false;
+    }
+  }
+
+  // Show Friends
+  Stream<List<Map<String, dynamic>>> showFriends() async* {
+    try {
+      String userId = await sharedPreferences.getUserId();
+      final friendsStream = firebase.getFriendsIds(userId);
+
+      await for (final friendSnapshot in friendsStream) {
+        List<String> friendIds = friendSnapshot.docs.map((doc) => doc.id).toList();
+
+        if (friendIds.isNotEmpty) {
+          final friendsDetailsSnapshot =
+          await firebase.getFriendsDetails(friendIds);
+
+          final friendsList = friendsDetailsSnapshot.docs.map((doc) {
+            UserModel user = UserModel(
+              id: doc.id,
+              photoURL:
+              doc['photoURL'] ?? 'default_photo_url', // Use a default if null
+              name: doc['name'],
+              phoneNumber: doc['phoneNumber'],
+              email: doc['email'],
+            );
+            return user.toMap();
+          }).toList();
+
+          yield friendsList;
+        } else {
+          yield []; // Yield an empty list if no friends
+        }
+      }
+    } catch (e) {
+      print('Error in loading friends: $e');
+      yield []; // Yield an empty list in case of error
     }
   }
 }
