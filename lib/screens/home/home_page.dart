@@ -12,6 +12,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final FriendController controller = FriendController();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  List<Map<String, dynamic>> _filterFriends(
+      List<Map<String, dynamic>> friends, String query) {
+    final friendsFiltered = controller.filterFriends(friends, query);
+    return friendsFiltered;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +38,7 @@ class _HomePageState extends State<HomePage> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search friends...',
                   prefixIcon: const Icon(Icons.search),
@@ -37,47 +46,59 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.trim().toLowerCase();
+                  });
+                },
               ),
             ),
             Expanded(
-                child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: controller.showFriends(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: controller.showFriends(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No friends found.'));
-                }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No friends found.'));
+                  }
 
-                final friends = snapshot.data!;
+                  final friends = _filterFriends(snapshot.data!, _searchQuery);
 
-                return ListView.builder(
-                  itemCount: friends.length,
-                  itemBuilder: (context, index) {
-                    final friend = friends[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: NetworkImage(friend['photoURL']),
-                      ),
-                      title: Text(friend['name']),
-                      subtitle: Text("Number: " + friend['phoneNumber']),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/events', arguments: {
-                          'userId': friend['id'],
-                          'showFull': false
-                        });
-                      },
+                  if (friends.isEmpty) {
+                    return const Center(
+                      child: Text('No matching friends found.'),
                     );
-                  },
-                );
-              },
-            )),
+                  }
+
+                  return ListView.builder(
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      final friend = friends[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(friend['photoURL']),
+                        ),
+                        title: Text(friend['name']),
+                        subtitle: Text("Number: ${friend['phoneNumber']}"),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/events', arguments: {
+                            'userId': friend['id'],
+                            'showFull': false
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

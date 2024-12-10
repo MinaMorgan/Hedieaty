@@ -39,17 +39,18 @@ class FriendController {
       final friendsStream = firebase.getFriendsIds(userId);
 
       await for (final friendSnapshot in friendsStream) {
-        List<String> friendIds = friendSnapshot.docs.map((doc) => doc.id).toList();
+        List<String> friendIds =
+            friendSnapshot.docs.map((doc) => doc.id).toList();
 
         if (friendIds.isNotEmpty) {
           final friendsDetailsSnapshot =
-          await firebase.getFriendsDetails(friendIds);
+              await firebase.getFriendsDetails(friendIds);
 
           final friendsList = friendsDetailsSnapshot.docs.map((doc) {
             UserModel user = UserModel(
               id: doc.id,
-              photoURL:
-              doc['photoURL'] ?? 'default_photo_url', // Use a default if null
+              photoURL: doc['photoURL'] ??
+                  'default_photo_url', // Use a default if null
               name: doc['name'],
               phoneNumber: doc['phoneNumber'],
               email: doc['email'],
@@ -66,5 +67,15 @@ class FriendController {
       print('Error in loading friends: $e');
       yield []; // Yield an empty list in case of error
     }
+  }
+
+  List<Map<String, dynamic>> filterFriends(
+      List<Map<String, dynamic>> friends, String query) {
+    return friends
+        .where((friend) => friend['name']
+            .toString()
+            .toLowerCase()
+            .contains(query.toLowerCase()))
+        .toList();
   }
 }
