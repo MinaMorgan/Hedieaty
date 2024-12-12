@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hedieaty/services/sharedPreferences_manager.dart';
 import '/widgets/gradient_appbar.dart';
+import '/controller/gift_controller.dart';
 
 class GiftDetailsPage extends StatefulWidget {
   const GiftDetailsPage({super.key});
@@ -9,15 +12,11 @@ class GiftDetailsPage extends StatefulWidget {
 }
 
 class _GiftDetailsPageState extends State<GiftDetailsPage> {
-  late String giftId;
-  late Map<String, dynamic> giftData;
-  late bool allowPledge;
+  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
 
-  late String name;
-  late String description;
-  late String category;
-  late int price;
-  late bool status;
+  late String giftId;
+  late bool allowPledge;
+  final GiftController controller = GiftController();
 
   @override
   void didChangeDependencies() {
@@ -26,33 +25,14 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     giftId = args['giftId'];
-    giftData = args['giftData'];
     allowPledge = args['allowPledge'];
-
-    name = giftData['name'];
-    description = giftData['description'];
-    category = giftData['category'];
-    price = giftData['price'];
-    status = giftData['status'];
   }
 
   void _pledgeGift() async {
-    if (!status) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This gift has already been pledged!'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    String userId = await sharedPreferences.getUserId();
 
-    // Update the gift status to pledged in the database (pseudo-code)
-    // await GiftController().updateGiftStatus(widget.giftId, false);
-
-    setState(() {
-      status = false;
-    });
+    // Update the gift status to pledged
+    await controller.pledgeGift(giftId, userId);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -68,97 +48,116 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
       appBar: GradientAppBar(
         title: 'Gift Details',
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            // Gift Name
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: controller.getGiftById(giftId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // Gift Description
-            Text(
-              'Description:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              description,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16.0),
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Gift not found.'));
+          }
 
-            // Gift Category
-            Text(
-              'Category:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              category,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16.0),
+          // Real-time gift data
+          final giftData = snapshot.data!.data() as Map<String, dynamic>;
 
-            // Gift Price
-            Text(
-              'Price:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              '\$$price',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16.0),
+          final String name = giftData['name'];
+          final String description = giftData['description'];
+          final String category = giftData['category'];
+          final int price = giftData['price'];
+          final bool status = giftData['status'];
 
-            // Gift Status
-            Text(
-              'Status:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              status ? 'Available' : 'Pledged',
-              style: TextStyle(
-                fontSize: 16,
-                color: status ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 32.0),
-
-            // Pledge Button
-            if (allowPledge && status)
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _pledgeGift,
-                  icon:
-                      const Icon(Icons.volunteer_activism, color: Colors.white),
-                  label: const Text(
-                    'Pledge Gift',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E88E5),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView(
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-          ],
-        ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Description:',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Category:',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  category,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Price:',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  '\$$price',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16.0),
+                Row(
+                  children: [
+                    const Text(
+                      'Status: ',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      status ? 'Available' : 'Pledged',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: status ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32.0),
+                // Pledge Button
+                if (allowPledge && status)
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: _pledgeGift,
+                      icon: const Icon(Icons.volunteer_activism,
+                          color: Colors.white),
+                      label: const Text(
+                        'Pledge Gift',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E88E5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
