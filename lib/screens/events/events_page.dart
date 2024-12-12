@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
-import '/screens/gifts/gifts_page.dart';
 import '/controller/event_controller.dart';
 
 class EventsPage extends StatefulWidget {
@@ -81,13 +80,8 @@ class _EventsPageState extends State<EventsPage> {
                         )
                       : null,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            GiftsPage(eventTitle: eventData['title']),
-                      ),
-                    );
+                    Navigator.pushNamed(context, '/gifts',
+                        arguments: {'eventId': eventId, 'eventTitle': eventData['title'], 'showFull': showFull});
                   },
                 ),
               );
@@ -156,7 +150,7 @@ class _EventsPageState extends State<EventsPage> {
             TextButton(
                 onPressed: () async {
                   // Validate the form
-                  if (await deleteEvent(eventId)) {
+                  if (await controller.deleteEvent(eventId)) {
                     Navigator.of(context).pop();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -173,9 +167,5 @@ class _EventsPageState extends State<EventsPage> {
         );
       },
     );
-  }
-
-  Future<bool> deleteEvent(String eventId) async {
-    return await controller.deleteEvent(eventId);
   }
 }

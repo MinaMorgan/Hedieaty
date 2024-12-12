@@ -64,32 +64,6 @@ class FirebaseManager {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////// Events ////////////////////////////////////////////
-  // Add Event
-  Future<void> addEvent(Map<String, String> event) async {
-    await _firestore.collection('events').add(event);
-  }
-
-  // Get Events
-  Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
-    return _firestore
-        .collection('events')
-        .where('userId', isEqualTo: userId)
-        .snapshots();
-  }
-
-  // Edit Event
-  Future<void> updateEvent(
-      String eventId, Map<String, String> updatedEvent) async {
-    await _firestore.collection('events').doc(eventId).update(updatedEvent);
-  }
-
-  // Remove Event
-  Future<void> removeEvent(String eventId) async {
-    await _firestore.collection('events').doc(eventId).delete();
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Friends ////////////////////////////////////////////
   // Add Friend
   Future<void> addFriend(Map<String, String> friends) async {
@@ -117,6 +91,58 @@ class FirebaseManager {
         .collection('users')
         .where(FieldPath.documentId, whereIn: friendsIds)
         .get();
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////// Events ////////////////////////////////////////////
+  // Add Event
+  Future<void> addEvent(Map<String, String> event) async {
+    await _firestore.collection('events').add(event);
+  }
+
+  // Get Events
+  Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
+    return _firestore
+        .collection('events')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+  }
+
+  // Edit Event
+  Future<void> updateEvent(
+      String eventId, Map<String, String> updatedEvent) async {
+    await _firestore.collection('events').doc(eventId).update(updatedEvent);
+  }
+
+  // Remove Event
+  Future<void> removeEvent(String eventId) async {
+    await _firestore.collection('events').doc(eventId).delete();
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////// Gifts ////////////////////////////////////////////
+  // Add Gift
+  Future<void> addGift(Map<String, dynamic> gift) async {
+    await _firestore.collection('gifts').add(gift);
+  }
+
+  // Get Gifts
+  Stream<QuerySnapshot> getGiftsByEventId(String eventId) {
+    return _firestore
+        .collection('gifts')
+        .where('eventId', isEqualTo: eventId)
+        .snapshots();
+  }
+
+  // Edit Gift
+  Future<void> updateGift(
+      String giftId, Map<String, dynamic> updatedEvent) async {
+    await _firestore.collection('gifts').doc(giftId).update(updatedEvent);
+  }
+
+  // Remove Gift
+  Future<void> removeGift(String giftId) async {
+    await _firestore.collection('gifts').doc(giftId).delete();
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
