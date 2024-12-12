@@ -78,7 +78,6 @@ class _GiftsPageState extends State<GiftsPage> {
                   onTap: () {
                     Navigator.pushNamed(context, '/giftDetails', arguments: {
                       'giftId': giftId,
-                      'giftData': giftData,
                       'allowPledge': !showFull
                     });
                   },

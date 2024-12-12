@@ -76,7 +76,7 @@ class FirebaseManager {
   }
 
   // Get Friends Ids
-  Stream<QuerySnapshot<Map<String, dynamic>>> getFriendsIds(String userId)  {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getFriendsIds(String userId) {
     return _firestore
         .collection('users')
         .doc(userId)
@@ -134,10 +134,45 @@ class FirebaseManager {
         .snapshots();
   }
 
-  // Edit Gift
+  // Get Gift Details
+  Stream<DocumentSnapshot> getGiftById(String giftId) {
+    return _firestore.collection('gifts').doc(giftId).snapshots();
+  }
+
+  // Get Pledged Gifts
+  Stream<QuerySnapshot> getPLedgedGift(String userId) {
+    return _firestore
+        .collection('gifts')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: false)
+        .snapshots();
+  }
+
+  // Update Gift
   Future<void> updateGift(
       String giftId, Map<String, dynamic> updatedEvent) async {
     await _firestore.collection('gifts').doc(giftId).update(updatedEvent);
+  }
+
+  // Pledge Gift
+  Future<void> updateGiftStatus(String giftId) async {
+    await _firestore.collection('gifts').doc(giftId).update({'status': false});
+  }
+
+  // Add Pledged User ID
+  Future<void> addPledgedUserName(String giftId, String userName) async {
+    await _firestore
+        .collection('gifts')
+        .doc(giftId)
+        .update({'pledgedUserName': userName});
+  }
+
+  // Add Pledged Due Date
+  Future<void> addPledgedDate(String giftId, String dueDate) async {
+    await _firestore
+        .collection('gifts')
+        .doc(giftId)
+        .update({'dueDate': dueDate});
   }
 
   // Remove Gift
