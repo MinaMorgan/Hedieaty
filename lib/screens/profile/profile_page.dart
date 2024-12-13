@@ -1,118 +1,122 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
-import '/screens/profile/update_info_page.dart';
-import '/controller/user_controller.dart';
+import '/widgets/gradient_appbar.dart';
+import '/services/shared_preferences_manager.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final UserController controller = UserController();
+  _ProfilePageState createState() => _ProfilePageState();
+}
 
+class _ProfilePageState extends State<ProfilePage> {
+  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
+
+  late String name;
+  late String email;
+  late String phoneNumber;
+  late String photoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  void _loadUserDetails() async {
+    final userDetails = await sharedPreferences.getUserDetails();
+    setState(() {
+      name = userDetails['name'];
+      email = userDetails['email'];
+      phoneNumber = userDetails['phoneNumber'];
+      photoUrl = userDetails['photoUrl'];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: const GradientAppBar(title: 'Profile'),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: controller.getCurrentUserDetails(), // Fetch user details
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Picture
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: NetworkImage(photoUrl),
+                ),
+                const SizedBox(height: 16.0),
+                // User Details
+                Text(
+                  name,
+                  style: const TextStyle(
+                      fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  email,
+                  style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  phoneNumber,
+                  style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+                ),
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                const SizedBox(height: 24.0),
 
-          if (!snapshot.hasData || snapshot.data!.data() == null) {
-            return const Center(child: Text('No user data available'));
-          }
+                // Edit Profile Button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/updateInfo');
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E88E5)),
+                  child: const Text(
+                    'Edit Profile Information',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
 
-          // Extract user details
-          final userData = snapshot.data!.data();
-          final String name = userData?['name'] ?? 'User Name';
-          final String email = userData?['email'] ?? 'Email not available';
-          final String? photoURL = userData?['photoURL'];
+                const SizedBox(height: 16.0),
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: photoURL != null
-                        ? NetworkImage(
-                            photoURL) // Firebase profile photo if available
-                        : const AssetImage('assets/images/profile.png')
-                            as ImageProvider,
+                // View My Pledged Gifts
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/pledgedGifts', arguments: {
+                      'userId': sharedPreferences.getUserId(),
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E88E5)),
+                  child: const Text(
+                    'My Pledged Gifts',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  const SizedBox(height: 16.0),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                        fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 170.0),
+
+                // Log Out Button
+                TextButton(
+                  onPressed: () async {
+                    await sharedPreferences.clearAll();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  child: const Text(
+                    'Log Out',
+                    style: TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    email,
-                    style: const TextStyle(fontSize: 16.0, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const UpdateInfoPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E88E5)),
-                    child: const Text(
-                      'Edit Profile Information',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  SwitchListTile(
-                    title: const Text('Enable Notifications'),
-                    value: true,
-                    activeColor: Colors.white,
-                    activeTrackColor: const Color(0xFF1E88E5),
-                    onChanged: (bool value) {
-                      // Handle notification toggle
-                    },
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/pledgedGifts',arguments: userData!['id']);
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E88E5)),
-                    child: const Text(
-                      'My Pledged Gifts',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 175,),
-                  TextButton(
-                    onPressed: () async {
-                      await controller.logOut();
-                      Navigator.pushReplacementNamed(context, '/login');
-                    },
-                    child: const Text(
-                      'Log Out',
-                      style: TextStyle(
-                          color: Colors.red, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(),
     );
