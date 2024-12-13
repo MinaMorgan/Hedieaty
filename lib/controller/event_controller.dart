@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '/services/sharedPreferences_manager.dart';
+import '/services/shared_preferences_manager.dart';
 import '/services/firebase_manager.dart';
 import '/models/event_model.dart';
 
@@ -22,16 +22,16 @@ class EventController {
     }
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getEventsByUserId(String userId) {
+  Stream<QuerySnapshot> getEventsByUserId(String userId) {
     try {
-      Stream<QuerySnapshot<Map<String, dynamic>>> userEvents =
-          firebase.getEvents(userId);
+      final userEvents = firebase.getEvents(userId);
       return userEvents;
     } catch (e) {
       throw Exception('Error fetching events for user $userId: $e');
     }
   }
 
+  // Edit Existing Event
   Future<bool> editEvent(
       String eventId, String title, String description, String date) async {
     try {
@@ -41,7 +41,7 @@ class EventController {
       await firebase.updateEvent(eventId, updatedEvent.toMap());
       return true;
     } catch (e) {
-      print("Failed to update events: $e");
+      print("Failed to update event: $e");
       return false;
     }
   }
@@ -52,7 +52,7 @@ class EventController {
       await firebase.removeEvent(eventId);
       return true;
     } catch (e) {
-      print("Failed to remove events: $e");
+      print("Failed to remove event: $e");
       return false;
     }
   }

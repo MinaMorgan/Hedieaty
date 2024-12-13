@@ -22,6 +22,7 @@ class UserModel {
       'email': email,
     };
   }
+}
 /*
   // Method to insert this User into the database
   Future<int> insert() async {
@@ -37,4 +38,3 @@ class UserModel {
   }
 
  */
-}

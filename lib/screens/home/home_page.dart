@@ -15,12 +15,6 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
 
-  List<Map<String, dynamic>> _filterFriends(
-      List<Map<String, dynamic>> friends, String query) {
-    final friendsFiltered = controller.filterFriends(friends, query);
-    return friendsFiltered;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +63,7 @@ class _HomePageState extends State<HomePage> {
                     return const Center(child: Text('No friends found.'));
                   }
 
-                  final friends = _filterFriends(snapshot.data!, _searchQuery);
+                  final friends = controller.filterFriends(snapshot.data!, _searchQuery);
 
                   if (friends.isEmpty) {
                     return const Center(

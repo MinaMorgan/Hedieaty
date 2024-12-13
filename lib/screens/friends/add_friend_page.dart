@@ -12,6 +12,23 @@ class AddFriendPage extends StatefulWidget {
 class _AddFriendPageState extends State<AddFriendPage> {
   final TextEditingController _inputController = TextEditingController();
   bool isAddingByEmail = true;
+  final FriendController controller = FriendController();
+
+  void _toggleInputType(bool byEmail) {
+    setState(() {
+      isAddingByEmail = byEmail;
+      _inputController.clear();
+    });
+  }
+
+  bool _isValidInput(String input) {
+    if (isAddingByEmail) {
+      return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+          .hasMatch(input);
+    } else {
+      return RegExp(r"^\d{10,15}$").hasMatch(input);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +83,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
               onPressed: () async {
                 final input = _inputController.text.trim();
                 if (_isValidInput(input)) {
-                  if (await addFriend(input)) {
+                  if (await controller.addFriend(isAddingByEmail,input)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Friend added successfully!'),
@@ -106,27 +123,5 @@ class _AddFriendPageState extends State<AddFriendPage> {
         ),
       ),
     );
-  }
-
-  void _toggleInputType(bool byEmail) {
-    setState(() {
-      isAddingByEmail = byEmail;
-      _inputController.clear();
-    });
-  }
-
-  bool _isValidInput(String input) {
-    if (isAddingByEmail) {
-      return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-          .hasMatch(input);
-    } else {
-      return RegExp(r"^\d{10,15}$").hasMatch(input);
-    }
-  }
-
-  // Adding Friend by Email or Phone Number
-  Future<bool> addFriend(String input) async {
-    final FriendController controller = FriendController();
-    return await controller.addFriend(isAddingByEmail, input);
   }
 }
