@@ -33,7 +33,7 @@ class FirebaseManager {
   }
 
   // Get User Details by Id
-  Future<DocumentSnapshot<Map<String, dynamic>>> getUserDetails(
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserDetailsById(
       String userId) async {
     return await _firestore.collection('users').doc(userId).get();
   }
@@ -56,6 +56,11 @@ class FirebaseManager {
         .where('phoneNumber', isEqualTo: phoneNumber)
         .limit(1)
         .get();
+  }
+
+  // Update User
+  Future<void> updateUser(String userId, Map<String, String> updateData) async {
+    await _firestore.collection('users').doc(userId).update(updateData);
   }
 
   // Sign out
@@ -96,7 +101,7 @@ class FirebaseManager {
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Events ////////////////////////////////////////////
   // Add Event
-  Future<void> addEvent(Map<String, String> event) async {
+  Future<void> addEvent(Map<String, dynamic> event) async {
     await _firestore.collection('events').add(event);
   }
 
