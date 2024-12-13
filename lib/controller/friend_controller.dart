@@ -1,4 +1,4 @@
-import '/services/sharedPreferences_manager.dart';
+import '/services/shared_preferences_manager.dart';
 import '/services/firebase_manager.dart';
 import '/models/user_model.dart';
 import '/models/friend_model.dart';
@@ -49,8 +49,7 @@ class FriendController {
           final friendsList = friendsDetailsSnapshot.docs.map((doc) {
             UserModel user = UserModel(
               id: doc.id,
-              photoURL: doc['photoURL'] ??
-                  'default_photo_url', // Use a default if null
+              photoURL: doc['photoURL'],
               name: doc['name'],
               phoneNumber: doc['phoneNumber'],
               email: doc['email'],

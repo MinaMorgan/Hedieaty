@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hedieaty/services/sharedPreferences_manager.dart';
+import 'package:hedieaty/services/shared_preferences_manager.dart';
 import '/widgets/gradient_appbar.dart';
 import '/controller/gift_controller.dart';
 

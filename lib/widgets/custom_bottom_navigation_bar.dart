@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/services/sharedPreferences_manager.dart';
+import '/services/shared_preferences_manager.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   CustomBottomNavigationBar({super.key});

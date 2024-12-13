@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/services/firebase_manager.dart';
 import 'package:intl/intl.dart';
-import '/services/sharedPreferences_manager.dart';
+import '/services/shared_preferences_manager.dart';
 import '/models/gift_model.dart';
 
 class GiftController {
