@@ -4,6 +4,7 @@ import '/services/shared_preferences_manager.dart';
 class CustomBottomNavigationBar extends StatelessWidget {
   CustomBottomNavigationBar({super.key});
   final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -27,6 +28,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/events',
                     arguments: {'userId': userId, 'showFull': true});
               },
+            ),
+            IconButton(
+              icon: const Icon(Icons.notifications, size: 24),
+              color: Colors.white,
+              onPressed: () => Navigator.pushReplacementNamed(context, '/notifications'),
             ),
             IconButton(
               icon: const Icon(Icons.person, size: 24),
