@@ -115,7 +115,7 @@ class FirebaseManager {
 
   // Edit Event
   Future<void> updateEvent(
-      String eventId, Map<String, String> updatedEvent) async {
+      String eventId, Map<String, dynamic> updatedEvent) async {
     await _firestore.collection('events').doc(eventId).update(updatedEvent);
   }
 

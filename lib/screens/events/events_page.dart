@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
 import '/controller/event_controller.dart';
@@ -35,28 +34,27 @@ class _EventsPageState extends State<EventsPage> {
           Navigator.pushNamed(context, '/addEvent');
         },
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: controller.getEventsByUserId(userId),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: controller.getEventsByUserId(userId, showFull),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No events found.'));
           }
-          final events = snapshot.data!.docs;
+          final events = snapshot.data!;
           return ListView.builder(
             padding: const EdgeInsets.all(8.0),
             itemCount: events.length,
             itemBuilder: (context, index) {
               final event = events[index];
-              final eventId = event.id;
-              final eventData = event.data() as Map<String, dynamic>;
+
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
                   title: Text(
-                    eventData['title'],
+                    event['title'],
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -64,11 +62,11 @@ class _EventsPageState extends State<EventsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4.0),
-                      Text(eventData['description'],
+                      Text(event['description'],
                           style: const TextStyle(fontSize: 14)),
                       const SizedBox(height: 8.0),
                       Text(
-                        'Date: ${eventData['date']}',
+                        'Date: ${event['date']}',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],
@@ -76,12 +74,15 @@ class _EventsPageState extends State<EventsPage> {
                   trailing: showFull
                       ? IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editEvent(eventId, eventData),
+                          onPressed: () => _editEvent(event),
                         )
                       : null,
                   onTap: () {
-                    Navigator.pushNamed(context, '/gifts',
-                        arguments: {'eventId': eventId, 'eventTitle': eventData['title'], 'showFull': showFull});
+                    Navigator.pushNamed(context, '/gifts', arguments: {
+                      'eventId': event['id'],
+                      'eventTitle': event['title'],
+                      'showFull': showFull
+                    });
                   },
                 ),
               );
@@ -93,77 +94,105 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-  Future<void> _editEvent(
-      String eventId, Map<String, dynamic> eventData) async {
+  Future<void> _editEvent(Map<String, dynamic> event) async {
+    // Move isPublic to the State class to handle updates correctly
+    bool isPublic = event['isPublic'] == true;
+
     showDialog(
       context: context,
       builder: (context) {
-        final titleController = TextEditingController(text: eventData['title']);
+        final titleController = TextEditingController(text: event['title']);
         final descriptionController =
-            TextEditingController(text: eventData['description']);
-        final dateController = TextEditingController(text: eventData['date']);
+            TextEditingController(text: event['description']);
+        final dateController = TextEditingController(text: event['date']);
 
-        return AlertDialog(
-          title: const Text('Edit Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              TextField(
-                controller: dateController,
-                decoration: const InputDecoration(labelText: 'Date'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                String title = titleController.text;
-                String description = descriptionController.text;
-                String date = dateController.text;
-
-                if (await controller.editEvent(
-                    eventId, title, description, date)) {
-                  Navigator.of(context).pop();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Updating Event failed'),
-                      backgroundColor: Colors.red,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Event'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Title'),
                     ),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-            TextButton(
-                onPressed: () async {
-                  // Validate the form
-                  if (await controller.deleteEvent(eventId)) {
-                    Navigator.of(context).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Deleting Event failed'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                child:
-                    const Text('Delete', style: TextStyle(color: Colors.red)))
-          ],
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descriptionController,
+                      decoration:
+                          const InputDecoration(labelText: 'Description'),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: dateController,
+                      decoration: const InputDecoration(labelText: 'Date'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text('Private'),
+                        Switch(
+                          value: isPublic,
+                          onChanged: (value) {
+                            // Use setState from StatefulBuilder to update isPublic
+                            setState(() {
+                              isPublic = value;
+                            });
+                          },
+                          activeColor: const Color(0xFF1E88E5),
+                        ),
+                        const Text('Public'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    String title = titleController.text;
+                    String description = descriptionController.text;
+                    String date = dateController.text;
+
+                    if (await controller.editEvent(
+                        event, title, description, date, isPublic)) {
+                      Navigator.of(context).pop();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Updating Event failed'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (await controller.deleteEvent(event)) {
+                      Navigator.of(context).pop();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Deleting Event failed'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child:
+                      const Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
         );
       },
     );

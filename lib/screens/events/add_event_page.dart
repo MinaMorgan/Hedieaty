@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import '/widgets/gradient_appbar.dart';
 import '/controller/event_controller.dart';
 
-class AddEventPage extends StatelessWidget {
-  AddEventPage({super.key});
+class AddEventPage extends StatefulWidget {
+  const AddEventPage({super.key});
 
-  // Add TextEditingController for input fields
+  @override
+  _AddEventPageState createState() => _AddEventPageState();
+}
+
+class _AddEventPageState extends State<AddEventPage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
 
-  // GlobalKey to manage form state
+  bool isPublic = true; // Default is Public
+
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -35,7 +40,7 @@ class AddEventPage extends StatelessWidget {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the events title';
+                      return 'Please enter the event title';
                     }
                     return null;
                   },
@@ -52,7 +57,7 @@ class AddEventPage extends StatelessWidget {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the events description';
+                      return 'Please enter the event description';
                     }
                     return null;
                   },
@@ -60,54 +65,52 @@ class AddEventPage extends StatelessWidget {
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: dateController,
+                  keyboardType: TextInputType.datetime,
                   decoration: InputDecoration(
-                    labelText: 'Date (YYYY-MM-DD)',
+                    labelText: 'Event Date (YYYY-MM-DD)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  keyboardType: TextInputType.datetime,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the events date';
-                    }
-                    // Basic date validation
-                    final regex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-                    if (!regex.hasMatch(value)) {
-                      return 'Please enter a valid date (YYYY-MM-DD)';
+                      return 'Please enter the event date';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Event Type',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        const Text('Private'),
+                        Switch(
+                          value: isPublic,
+                          onChanged: (value) {
+                            setState(() {
+                              isPublic = value;
+                            });
+                          },
+                          activeColor: const Color(0xFF1E88E5),
+                        ),
+                        const Text('Public'),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () async {
-                      // Validate the form
-                      if (_formKey.currentState!.validate()) {
-                        if (await createEvent()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Event added successfully!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                          Navigator.pop(context); // Go back to the events page
-                        } else {
-                          // Error feedback
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('New Event Creation failed'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
+                    onPressed: _saveEvent,
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor:
-                          const Color(0xFF1E88E5), // Custom blue color
+                      backgroundColor: const Color(0xFF1E88E5),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 40,
                         vertical: 16,
@@ -117,8 +120,8 @@ class AddEventPage extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Create Event',
-                      style: TextStyle(fontSize: 16),
+                      'Save Event',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ),
@@ -130,14 +133,36 @@ class AddEventPage extends StatelessWidget {
     );
   }
 
-  // Create new Event
-  Future<bool> createEvent() async {
-    String title = titleController.text;
-    String description = descriptionController.text;
-    String date = dateController.text;
+  void _saveEvent() async {
+    if (_formKey.currentState!.validate()) {
+      final EventController controller = EventController();
 
-    final EventController controller = EventController();
+      final event = {
+        'title': titleController.text.trim(),
+        'description': descriptionController.text.trim(),
+        'date': dateController.text.trim(),
+        'isPublic': isPublic,
+      };
+      if (await controller.createEvent(event)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: isPublic
+                ? Text('Event created publicly!')
+                : Text('Event created privately!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Error feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('New Event Creation failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
 
-    return await controller.createEvent(title, description, date);
+      Navigator.pop(context);
+    }
   }
 }
