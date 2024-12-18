@@ -11,7 +11,7 @@ class SharedPreferencesManager {
   static const String _nameKey = 'name';
   static const String _emailKey = 'email';
   static const String _phoneNumberKey = 'phoneNumber';
-  static const String _photoUrlKey = 'photoUrl';
+  static const String _photoUrlKey = 'photoURL';
 
   // Save user details
   Future<void> saveUserDetails(Map<String, dynamic> userDetails) async {
@@ -30,8 +30,8 @@ class SharedPreferencesManager {
     if (userDetails.containsKey('phoneNumber')) {
       await prefs.setString(_phoneNumberKey, userDetails['phoneNumber']);
     }
-    if (userDetails.containsKey('photoUrl')) {
-      await prefs.setString(_photoUrlKey, userDetails['photoUrl']);
+    if (userDetails.containsKey('photoURL')) {
+      await prefs.setString(_photoUrlKey, userDetails['photoURL']);
     }
   }
 
@@ -44,7 +44,7 @@ class SharedPreferencesManager {
       'name': prefs.getString(_nameKey) ?? 'Unknown',
       'email': prefs.getString(_emailKey) ?? 'Unknown',
       'phoneNumber': prefs.getString(_phoneNumberKey) ?? 'Unknown',
-      'photoUrl': prefs.getString(_photoUrlKey) ??
+      'photoURL': prefs.getString(_photoUrlKey) ??
           'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
     };
   }
