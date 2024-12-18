@@ -2,15 +2,44 @@ import 'package:flutter/material.dart';
 import '/widgets/gradient_appbar.dart';
 import '/controller/gift_controller.dart';
 
-class AddGiftPage extends StatelessWidget {
-  AddGiftPage({super.key});
+class AddGiftPage extends StatefulWidget {
+  final String eventId;
+  final bool isPublic;
 
+  const AddGiftPage({
+    super.key,
+    required this.eventId,
+    required this.isPublic,
+  });
+
+  @override
+  State<AddGiftPage> createState() => _AddGiftPageState();
+}
+
+
+class _AddGiftPageState extends State<AddGiftPage> {
   final TextEditingController nameController = TextEditingController();
+
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
+
   final TextEditingController priceController = TextEditingController();
+
   final GiftController controller = GiftController();
+
   final _formKey = GlobalKey<FormState>();
+
+  // List of categories for the dropdown
+  final List<String> categories = [
+    'Electronics',
+    'Toys',
+    'Books',
+    'Fashion',
+    'Home & Living',
+    'Health & Beauty',
+    'other'
+  ];
+
+  String? selectedCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -57,17 +86,26 @@ class AddGiftPage extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: categoryController,
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  items: categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
                   decoration: InputDecoration(
                     labelText: 'Gift Category',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  onChanged: (value) {
+                    selectedCategory = value!;
+                  },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the gift category';
+                      return 'Please select a gift category';
                     }
                     return null;
                   },
@@ -101,13 +139,19 @@ class AddGiftPage extends StatelessWidget {
                         int price = int.parse(priceController.text.trim());
                         String name = nameController.text.trim();
                         String description = descriptionController.text.trim();
-                        String category = categoryController.text.trim();
-                        final eventId = ModalRoute.of(context)!
-                            .settings
-                            .arguments as String;
 
                         if (await controller.createGift(
-                            eventId, name, description, category, price)) {
+                          widget.isPublic,
+                          widget.eventId,
+                          name,
+                          description,
+                          selectedCategory!,
+                          price,
+                          true,
+                          null,
+                          null,
+                          null,
+                        )) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Gift added successfully!'),

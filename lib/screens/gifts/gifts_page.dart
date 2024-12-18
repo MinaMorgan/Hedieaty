@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '/widgets/gradient_appbar.dart';
 import '/controller/gift_controller.dart';
+import 'add_gift_page.dart';
 
 class GiftsPage extends StatefulWidget {
   const GiftsPage({super.key});
@@ -13,8 +13,25 @@ class GiftsPage extends StatefulWidget {
 class _GiftsPageState extends State<GiftsPage> {
   late String eventId;
   late String eventTitle;
+  late bool eventIsPublic;
   late bool showFull;
+
   final GiftController controller = GiftController();
+
+  // Sorting and Filtering Variables
+  String _selectedSortOption = 'Name';
+  String _selectedCategory = 'All';
+  final List<String> sortOptions = ['Name', 'Price'];
+  final List<String> categories = [
+    'All',
+    'Electronics',
+    'Toys',
+    'Books',
+    'Fashion',
+    'Home & Living',
+    'Health & Beauty',
+    'other'
+  ];
 
   @override
   void didChangeDependencies() {
@@ -23,6 +40,7 @@ class _GiftsPageState extends State<GiftsPage> {
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     eventId = args['eventId'];
     eventTitle = args['eventTitle'];
+    eventIsPublic = args['eventIsPublic'];
     showFull = args['showFull'];
   }
 
@@ -33,74 +51,205 @@ class _GiftsPageState extends State<GiftsPage> {
         title: 'Gifts for $eventTitle',
         showButton: showFull,
         onButtonPressed: () {
-          Navigator.pushNamed(context, '/addGift', arguments: eventId);
-        },
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: controller.getGiftsByEventId(eventId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No gifts found.'));
-          }
-          final gifts = snapshot.data!.docs;
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return AddGiftPage(
+                  eventId: eventId,
+                  isPublic: eventIsPublic,
+                );
+              },
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 1.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: gifts.length,
-            itemBuilder: (context, index) {
-              final gift = gifts[index];
-              final giftId = gift.id;
-              final giftData = gift.data() as Map<String, dynamic>;
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
 
-              Color textColor =
-                  (giftData['status'] == true) ? Colors.green : Colors.red;
-
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Text(
-                    giftData['name'],
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: textColor),
-                  ),
-                  subtitle: Text(giftData['description']),
-                  trailing: (showFull && giftData['status'])
-                      ? IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editGift(giftId, giftData),
-                        )
-                      : null,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/giftDetails', arguments: {
-                      'giftId': giftId,
-                      'allowPledge': !showFull
-                    });
-                  },
-                ),
-              );
-            },
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+            ),
           );
         },
+      ),
+      body: Column(
+        children: [
+          // Sorting and Filtering UI
+          Card(
+            elevation: 3,
+            margin: const EdgeInsets.all(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Sorting Dropdown
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Sort By:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedSortOption,
+                            icon: const Icon(Icons.sort,
+                                color: Colors.blueAccent),
+                            isExpanded: true,
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black87),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedSortOption = newValue!;
+                              });
+                            },
+                            items: sortOptions.map<DropdownMenuItem<String>>(
+                              (String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Filtering Dropdown
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Filter by Category:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedCategory,
+                            icon: const Icon(Icons.filter_list,
+                                color: Colors.blueAccent),
+                            isExpanded: true,
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black87),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedCategory = newValue!;
+                              });
+                            },
+                            items: categories
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Gifts List
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: controller.getGiftsByEventId(eventIsPublic, eventId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No gifts found.'));
+                }
+
+                // Apply sorting and filtering
+                final gifts = _filterAndSortGifts(snapshot.data!);
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(8.0),
+                  itemCount: gifts.length,
+                  itemBuilder: (context, index) {
+                    final gift = gifts[index];
+
+                    Color textColor =
+                        gift['status'] ? Colors.green : Colors.red;
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ListTile(
+                        title: Text(
+                          gift['name'],
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor),
+                        ),
+                        subtitle: Text(gift['description']),
+                        trailing: (showFull && gift['status'])
+                            ? IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _editGift(gift),
+                              )
+                            : null,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/giftDetails',
+                              arguments: {
+                                'giftId': gift['id'],
+                                'eventIsPublic': eventIsPublic,
+                                'allowPledge': !showFull
+                              });
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _editGift(String giftId, Map<String, dynamic> giftData) async {
+  List<Map<String, dynamic>> _filterAndSortGifts(
+      List<Map<String, dynamic>> gifts) {
+    // Filter by Category
+    if (_selectedCategory != 'All') {
+      gifts =
+          gifts.where((gift) => gift['category'] == _selectedCategory).toList();
+    }
+
+    // Sort by selected option
+    if (_selectedSortOption == 'Name') {
+      gifts.sort((a, b) => a['name'].compareTo(b['name']));
+    } else if (_selectedSortOption == 'Price') {
+      gifts.sort((a, b) => a['price'].compareTo(b['price']));
+    }
+
+    return gifts;
+  }
+
+  Future<void> _editGift(Map<String, dynamic> gift) async {
     showDialog(
       context: context,
       builder: (context) {
-        final nameController = TextEditingController(text: giftData['name']);
+        final nameController = TextEditingController(text: gift['name']);
         final descriptionController =
-            TextEditingController(text: giftData['description']);
+            TextEditingController(text: gift['description']);
         final categoryController =
-            TextEditingController(text: giftData['category']);
+            TextEditingController(text: gift['category']);
         final priceController =
-            TextEditingController(text: giftData['price'].toString());
+            TextEditingController(text: gift['price'].toString());
 
         return AlertDialog(
           title: const Text('Edit Gift'),
@@ -138,7 +287,14 @@ class _GiftsPageState extends State<GiftsPage> {
                 int price = int.parse(priceController.text.trim());
 
                 if (await controller.editGift(
-                    giftId, eventId, name, description, category, price)) {
+                    eventIsPublic,
+                    gift['id'],
+                    gift['eventId'],
+                    name,
+                    description,
+                    category,
+                    price,
+                    gift['status'])) {
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -153,7 +309,7 @@ class _GiftsPageState extends State<GiftsPage> {
             ),
             TextButton(
               onPressed: () async {
-                if (await controller.deleteGift(giftId)) {
+                if (await controller.deleteGift(eventIsPublic, gift['id'])) {
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

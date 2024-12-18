@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '/widgets/gradient_appbar.dart';
 import '/widgets/custom_bottom_navigation_bar.dart';
+import '/screens/events/add_event_page.dart';
 import '/controller/event_controller.dart';
 
 class EventsPage extends StatefulWidget {
@@ -13,7 +15,14 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   late String userId;
   late bool showFull;
+
   final EventController controller = EventController();
+
+  // Sorting, Filtering, and Day Variables
+  String _selectedSortOption = 'Title';
+  String _selectedDayFilter = 'All';
+  final List<String> sortOptions = ['Title', 'Date'];
+  final List<String> dayFilters = ['All', 'Upcoming', 'Current', 'Past'];
 
   @override
   void didChangeDependencies() {
@@ -31,72 +40,248 @@ class _EventsPageState extends State<EventsPage> {
         title: 'Events',
         showButton: showFull,
         onButtonPressed: () {
-          Navigator.pushNamed(context, '/addEvent');
-        },
-      ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: controller.getEventsByUserId(userId, showFull),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No events found.'));
-          }
-          final events = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => AddEventPage(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 1.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
 
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Text(
-                    event['title'],
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4.0),
-                      Text(event['description'],
-                          style: const TextStyle(fontSize: 14)),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        'Date: ${event['date']}',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  trailing: showFull
-                      ? IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editEvent(event),
-                        )
-                      : null,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/gifts', arguments: {
-                      'eventId': event['id'],
-                      'eventTitle': event['title'],
-                      'showFull': showFull
-                    });
-                  },
-                ),
-              );
-            },
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+            ),
           );
         },
+      ),
+      body: Column(
+        children: [
+          // Sorting and Filtering UI
+          Card(
+            elevation: 3,
+            margin: const EdgeInsets.all(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Sorting Dropdown
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sort By:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedSortOption,
+                            icon: const Icon(Icons.sort,
+                                color: Colors.blueAccent),
+                            isExpanded: true,
+                            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedSortOption = newValue!;
+                              });
+                            },
+                            items: sortOptions.map<DropdownMenuItem<String>>(
+                              (String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Day Filter Dropdown
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Filter by Day:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedDayFilter,
+                            icon: const Icon(Icons.calendar_today,
+                                color: Colors.blueAccent),
+                            isExpanded: true,
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black87),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedDayFilter = newValue!;
+                              });
+                            },
+                            items: dayFilters
+                                .map<DropdownMenuItem<String>>(
+                                  (String dayFilter) =>
+                                      DropdownMenuItem<String>(
+                                    value: dayFilter,
+                                    child: Text(dayFilter),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Event List
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: controller.getEventsByUserId(userId, showFull),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text(
+                    'No events found.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ));
+                }
+
+                // Apply Filtering and Sorting
+                final events = _filterAndSortEvents(snapshot.data!);
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    final event = events[index];
+
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 6),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        title: Text(
+                          event['title'],
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 6),
+                            Text(
+                              event['description'],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.date_range,
+                                    size: 16, color: Colors.blueAccent),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Date: ${event['date']}',
+                                  style: const TextStyle(
+                                      color: Colors.black54, fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        trailing: showFull
+                            ? IconButton(
+                                icon: const Icon(Icons.edit,
+                                    color: Colors.blueAccent),
+                                onPressed: () => _editEvent(event),
+                              )
+                            : null,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/gifts', arguments: {
+                            'eventId': event['id'],
+                            'eventTitle': event['title'],
+                            'eventIsPublic': event['isPublic'],
+                            'showFull': showFull
+                          });
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: showFull ? CustomBottomNavigationBar() : null,
     );
   }
 
+  List<Map<String, dynamic>> _filterAndSortEvents(
+      List<Map<String, dynamic>> events) {
+    final now = DateTime.now();
+
+    // Filtering by Day
+    events = events.where((event) {
+      final eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
+      switch (_selectedDayFilter) {
+        case 'Upcoming':
+          return eventDate.isAfter(now);
+        case 'Current':
+          return eventDate.year == now.year &&
+              eventDate.month == now.month &&
+              eventDate.day == now.day;
+        case 'Past':
+          return eventDate.isBefore(now);
+        default:
+          return true;
+      }
+    }).toList();
+
+    // Sorting
+    switch (_selectedSortOption) {
+      case 'Title':
+        events.sort((a, b) => a['title'].compareTo(b['title']));
+        break;
+      case 'Date':
+        events
+            .sort((a, b) => DateFormat('yyyy-MM-dd').parse(a['date']).compareTo(
+                  DateFormat('yyyy-MM-dd').parse(b['date']),
+                ));
+        break;
+    }
+
+    return events;
+  }
+
   Future<void> _editEvent(Map<String, dynamic> event) async {
-    // Move isPublic to the State class to handle updates correctly
-    bool isPublic = event['isPublic'] == true;
+    bool updatedIsPublic = event['isPublic'];
 
     showDialog(
       context: context,
@@ -134,11 +319,10 @@ class _EventsPageState extends State<EventsPage> {
                       children: [
                         const Text('Private'),
                         Switch(
-                          value: isPublic,
+                          value: updatedIsPublic,
                           onChanged: (value) {
-                            // Use setState from StatefulBuilder to update isPublic
                             setState(() {
-                              isPublic = value;
+                              updatedIsPublic = value;
                             });
                           },
                           activeColor: const Color(0xFF1E88E5),
@@ -156,12 +340,12 @@ class _EventsPageState extends State<EventsPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    String title = titleController.text;
-                    String description = descriptionController.text;
-                    String date = dateController.text;
+                    String updatedTitle = titleController.text;
+                    String updatedDescription = descriptionController.text;
+                    String updatedDate = dateController.text;
 
-                    if (await controller.editEvent(
-                        event, title, description, date, isPublic)) {
+                    if (await controller.editEvent(event, updatedTitle,
+                        updatedDescription, updatedDate, updatedIsPublic)) {
                       Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -176,7 +360,8 @@ class _EventsPageState extends State<EventsPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (await controller.deleteEvent(event)) {
+                    if (await controller.deleteEvent(
+                        event['isPublic'], event['id'])) {
                       Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
