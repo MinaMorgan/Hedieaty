@@ -14,8 +14,7 @@ class _AddEventPageState extends State<AddEventPage> {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
 
-  bool isPublic = true; // Default is Public
-
+  bool isPublic = true;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -30,6 +29,7 @@ class _AddEventPageState extends State<AddEventPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Event Title
                 TextFormField(
                   controller: titleController,
                   decoration: InputDecoration(
@@ -46,6 +46,8 @@ class _AddEventPageState extends State<AddEventPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                // Event Description
                 TextFormField(
                   controller: descriptionController,
                   maxLines: 3,
@@ -63,30 +65,39 @@ class _AddEventPageState extends State<AddEventPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                // Event Date Picker
                 TextFormField(
                   controller: dateController,
-                  keyboardType: TextInputType.datetime,
+                  readOnly: true,
                   decoration: InputDecoration(
-                    labelText: 'Event Date (YYYY-MM-DD)',
+                    labelText: 'Event Date',
+                    hintText: 'Select a date',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () => _selectDate(context),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the event date';
+                      return 'Please select the event date';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24.0),
+
+                // Event Type Toggle (Private/Public)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Event Type',
                       style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     Row(
                       children: [
@@ -106,6 +117,8 @@ class _AddEventPageState extends State<AddEventPage> {
                   ],
                 ),
                 const SizedBox(height: 24.0),
+
+                // Save Button
                 Center(
                   child: ElevatedButton(
                     onPressed: _saveEvent,
@@ -133,36 +146,56 @@ class _AddEventPageState extends State<AddEventPage> {
     );
   }
 
+  // Date Picker Functionality
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        dateController.text = pickedDate.toString().split(' ')[0];
+      });
+    }
+  }
+
+  // Save Event Functionality
   void _saveEvent() async {
     if (_formKey.currentState!.validate()) {
       final EventController controller = EventController();
 
-      final event = {
-        'title': titleController.text.trim(),
-        'description': descriptionController.text.trim(),
-        'date': dateController.text.trim(),
-        'isPublic': isPublic,
-      };
-      if (await controller.createEvent(event)) {
+      final title = titleController.text.trim();
+      final description = descriptionController.text.trim();
+      final date = dateController.text.trim();
+
+      final result = await controller.createEvent(
+        title,
+        description,
+        date,
+        isPublic,
+      );
+
+      if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: isPublic
-                ? Text('Event created publicly!')
-                : Text('Event created privately!'),
+                ? const Text('Event created publicly!')
+                : const Text('Event created privately!'),
             backgroundColor: Colors.green,
           ),
         );
+        Navigator.pop(context);
       } else {
-        // Error feedback
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('New Event Creation failed'),
+          const SnackBar(
+            content: Text('Event creation failed. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
       }
-
-      Navigator.pop(context);
     }
   }
 }
