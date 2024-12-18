@@ -1,103 +1,220 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '/services/firebase_manager.dart';
 import 'package:intl/intl.dart';
 import '/services/shared_preferences_manager.dart';
 import '/models/gift_model.dart';
 
 class GiftController {
-  final FirebaseManager firebase = FirebaseManager();
   final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
 
   // Create new Gift
-  Future<bool> createGift(String eventId, String name, String description,
-      String category, int price) async {
+  Future<bool> createGift(
+      bool isPublic,
+      String eventId,
+      String name,
+      String description,
+      String category,
+      int price,
+      bool status,
+      String? pledgeUserId,
+      String? pledgeUserName,
+      String? pledgeDate) async {
     try {
       String userId = await sharedPreferences.getUserId();
       GiftModel newGift = GiftModel(
-          eventId: eventId,
-          userId: userId,
-          name: name,
-          description: description,
-          category: category,
-          price: price,
-          status: true);
-      await firebase.addGift(newGift.toMap());
+        eventId: eventId,
+        userId: userId,
+        name: name,
+        description: description,
+        category: category,
+        price: price,
+        status: status,
+        pledgeUserId: pledgeUserId,
+        pledgeUserName: pledgeUserName,
+        pledgeDate: pledgeDate,
+      );
+
+      if (isPublic) {
+        await GiftModel.createPublicGift(newGift);
+      } else {
+        await GiftModel.createPrivateGift(newGift);
+      }
       return true;
     } catch (e) {
-      print('Gift Creation error: $e');
-      return false;
+      throw ('Gift Creation error: $e');
     }
   }
 
-  Stream<QuerySnapshot> getGiftsByEventId(String eventId) {
+  // Edit Existing Gift
+  Future<bool> editGift(
+      bool isPublic,
+      String giftId,
+      String eventId,
+      String name,
+      String description,
+      String category,
+      int price,
+      bool status) async {
     try {
-      final eventGifts = firebase.getGiftsByEventId(eventId);
-      return eventGifts;
+      String userId = await sharedPreferences.getUserId();
+      GiftModel updatedGift = GiftModel(
+        eventId: eventId,
+        userId: userId,
+        name: name,
+        description: description,
+        category: category,
+        price: price,
+        status: status,
+      );
+
+      if (isPublic) {
+        await GiftModel.updatePublicGift(giftId, updatedGift);
+      } else {
+        await GiftModel.updatePrivateGift(giftId, updatedGift);
+      }
+      return true;
+    } catch (e) {
+      throw ("Failed to update gift: $e");
+    }
+  }
+
+  // Delete Gift
+  Future<bool> deleteGift(bool isPublic, String giftId) async {
+    try {
+      if (isPublic) {
+        await GiftModel.deletePublicGift(giftId);
+      } else {
+        await GiftModel.deletePrivateGift(giftId);
+      }
+      return true;
+    } catch (e) {
+      throw ("Failed to remove gift: $e");
+    }
+  }
+
+  // Delete Gift on Deleting Parent Event
+  Future<bool> deleteGiftsByEventId(bool isPublic, String eventId) async {
+    try {
+      if (isPublic) {
+        final firebaseGifts = GiftModel.getPublicGiftsByEventId(eventId);
+        await for (var snapshot in firebaseGifts) {
+          for (var doc in snapshot.docs) {
+            await GiftModel.deletePublicGift(doc.id);
+          }
+        }
+      } else {
+        await GiftModel.deletePrivateGiftsByEventId(eventId.toString());
+      }
+      return true;
+    } catch (e) {
+      throw ("Failed to remove gift: $e");
+    }
+  }
+
+  // Fetch Gifts
+  Stream<List<Map<String, dynamic>>> getGiftsByEventId(
+      bool isPublic, String eventId) async* {
+    try {
+      if (isPublic) {
+        final gifts = GiftModel.getPublicGiftsByEventId(eventId);
+        await for (var snapshot in gifts) {
+          final gifts = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+          yield gifts;
+        }
+      } else {
+        final privateGifts = await GiftModel.getPrivateGiftsByEventId(eventId);
+        final gifts = privateGifts.map((gift) {
+          // Handle the type conversion
+          final updatedGift = Map<String, dynamic>.from(gift);
+          updatedGift['id'] = gift['id'].toString();
+          if (updatedGift['status'] == 0) {
+            updatedGift['status'] = false;
+          } else {
+            updatedGift['status'] = true;
+          }
+
+          return updatedGift;
+        }).toList();
+        yield gifts;
+      }
     } catch (e) {
       throw Exception('Error fetching gifts for event $eventId: $e');
     }
   }
 
-  Stream<DocumentSnapshot> getGiftById(String giftId) {
+  // Get Gift Details
+  Stream<Map<String, dynamic>> getGiftDetails(
+      bool isPublic, String giftId) async* {
     try {
-      final giftDetails = firebase.getGiftById(giftId);
-      return giftDetails;
+      Map<String, dynamic>? giftDetails;
+
+      if (isPublic) {
+        final gift = GiftModel.getPublicGift(giftId);
+        await for (final snapshot in gift) {
+          giftDetails = snapshot.data() as Map<String, dynamic>;
+          giftDetails['id'] = snapshot.id;
+          break;
+        }
+      } else {
+        final gift = await GiftModel.getPrivateGift(giftId);
+
+        // Handle the type conversion
+        giftDetails = Map<String, dynamic>.from(gift);
+        giftDetails['id'] = giftId;
+        if (giftDetails['status'] == 0) {
+          giftDetails['status'] = false;
+        } else {
+          giftDetails['status'] = true;
+        }
+      }
+      yield giftDetails!;
     } catch (e) {
       throw Exception('Error fetching details for gift $giftId: $e');
     }
   }
 
-  Stream<QuerySnapshot> getPledgedGifts(String userId) {
-    try {
-      final pledgedGifts = firebase.getPLedgedGift(userId);
-      print(pledgedGifts);
-      return pledgedGifts;
-    } catch (e) {
-      throw Exception('Error fetching pledged gifts for user $userId: $e');
-    }
-  }
-
-  Future<bool> editGift(String giftId, String eventId, String name,
-      String description, String category, int price) async {
+  // Get Pledged Gifts
+  Stream<QuerySnapshot<Map<String, dynamic>>> getPledgedGifts() async* {
     try {
       String userId = await sharedPreferences.getUserId();
-      GiftModel updatedGift = GiftModel(
-          eventId: eventId,
-          userId: userId,
-          name: name,
-          description: description,
-          category: category,
-          price: price,
-          status: true);
-      await firebase.updateGift(giftId, updatedGift.toMap());
-      return true;
+      final pledgedGifts = GiftModel.getPledgedGifts(userId);
+      yield* pledgedGifts;
     } catch (e) {
-      print("Failed to update gift: $e");
-      return false;
+      throw Exception('Error fetching pledged gifts for user: $e');
     }
   }
 
-  Future<bool> pledgeGift(String giftId, String userName) async {
+  // Pledge Gift
+  Future<bool> pledgeGift(Map<String, dynamic> gift) async {
     try {
       DateTime date = DateTime.now();
-      String dueDate = DateFormat('yyyy-MM-dd').format(date);
-      await firebase.updateGiftStatus(giftId);
-      await firebase.addPledgedUserName(giftId, userName);
-      await firebase.addPledgedDate(giftId, dueDate);
-      return true;
-    } catch (e) {
-      print("Failed to update gift: $e");
-      return false;
-    }
-  }
+      String pledgedDate = DateFormat('yyyy-MM-dd').format(date);
 
-  Future<bool> deleteGift(String giftId) async {
-    try {
-      await firebase.removeGift(giftId);
+      String userId = await sharedPreferences.getUserId();
+      String userName = await sharedPreferences.getName();
+
+      print(userId);
+      GiftModel pledgedGift = GiftModel(
+        eventId: gift['eventId'],
+        userId: gift['userId'],
+        name: gift['name'],
+        description: gift['description'],
+        category: gift['category'],
+        price: gift['price'],
+        status: false,
+        pledgeUserId: userId,
+        pledgeUserName: userName,
+        pledgeDate: pledgedDate,
+      );
+      print(gift);
+
+      await GiftModel.updatePublicGift(gift['id'], pledgedGift);
       return true;
     } catch (e) {
-      print("Failed to remove gift: $e");
-      return false;
+      throw ("Failed to Pledge gift: $e");
     }
   }
 }

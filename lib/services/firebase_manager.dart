@@ -101,16 +101,9 @@ class FirebaseManager {
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Events ////////////////////////////////////////////
   // Add Event
-  Future<void> addEvent(Map<String, dynamic> event) async {
-    await _firestore.collection('events').add(event);
-  }
-
-  // Get Events
-  Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
-    return _firestore
-        .collection('events')
-        .where('userId', isEqualTo: userId)
-        .snapshots();
+  Future<String> addEvent(Map<String, dynamic> event) async {
+    final docRef = await _firestore.collection('events').add(event);
+    return docRef.id;
   }
 
   // Edit Event
@@ -124,6 +117,14 @@ class FirebaseManager {
     await _firestore.collection('events').doc(eventId).delete();
   }
 
+  // Get Events
+  Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
+    return _firestore
+        .collection('events')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+  }
+
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Gifts ////////////////////////////////////////////
   // Add Gift
@@ -131,21 +132,32 @@ class FirebaseManager {
     await _firestore.collection('gifts').add(gift);
   }
 
+  // Update Gift
+  Future<void> updateGift(
+      String giftId, Map<String, dynamic> updatedEvent) async {
+    await _firestore.collection('gifts').doc(giftId).update(updatedEvent);
+  }
+
+  // Remove Gift
+  Future<void> removeGift(String giftId) async {
+    await _firestore.collection('gifts').doc(giftId).delete();
+  }
+
+  // Get Gift Details
+  Stream<DocumentSnapshot> getGift(String giftId) {
+    return _firestore.collection('gifts').doc(giftId).snapshots();
+  }
+
   // Get Gifts
-  Stream<QuerySnapshot> getGiftsByEventId(String eventId) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getGiftsByEventId(String eventId) {
     return _firestore
         .collection('gifts')
         .where('eventId', isEqualTo: eventId)
         .snapshots();
   }
 
-  // Get Gift Details
-  Stream<DocumentSnapshot> getGiftById(String giftId) {
-    return _firestore.collection('gifts').doc(giftId).snapshots();
-  }
-
   // Get Pledged Gifts
-  Stream<QuerySnapshot> getPLedgedGift(String userId) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getPLedgedGifts(String userId) {
     return _firestore
         .collection('gifts')
         .where('userId', isEqualTo: userId)
@@ -153,11 +165,7 @@ class FirebaseManager {
         .snapshots();
   }
 
-  // Update Gift
-  Future<void> updateGift(
-      String giftId, Map<String, dynamic> updatedEvent) async {
-    await _firestore.collection('gifts').doc(giftId).update(updatedEvent);
-  }
+
 
   // Pledge Gift
   Future<void> updateGiftStatus(String giftId) async {
@@ -180,10 +188,7 @@ class FirebaseManager {
         .update({'dueDate': dueDate});
   }
 
-  // Remove Gift
-  Future<void> removeGift(String giftId) async {
-    await _firestore.collection('gifts').doc(giftId).delete();
-  }
+
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
 }
