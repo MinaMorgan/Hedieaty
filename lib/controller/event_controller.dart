@@ -1,17 +1,18 @@
+import 'package:intl/intl.dart';
 import '/services/shared_preferences_manager.dart';
 import '/controller/gift_controller.dart';
 import '/models/event_model.dart';
 
 class EventController {
-  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
-
-  final GiftController giftController = GiftController();
+  final SharedPreferencesManager _sharedPreferences =
+      SharedPreferencesManager();
+  final GiftController _giftController = GiftController();
 
   // Create new Event
   Future<Map<String, dynamic>> createEvent(
       String title, String description, String date, bool isPublic) async {
     try {
-      String userId = await sharedPreferences.getUserId();
+      String userId = await _sharedPreferences.getUserId();
       EventModel newEvent = EventModel(
         userId: userId,
         title: title,
@@ -41,7 +42,7 @@ class EventController {
       String updatedDate,
       bool updatedIsPublic) async {
     try {
-      String userId = await sharedPreferences.getUserId();
+      String userId = await _sharedPreferences.getUserId();
       EventModel updatedEvent = EventModel(
         userId: userId,
         title: updatedTitle,
@@ -74,7 +75,7 @@ class EventController {
       } else {
         await EventModel.deletePrivateEvent(eventId);
       }
-      giftController.deleteGiftsByEventId(isPublic, eventId);
+      _giftController.deleteGiftsByEventId(isPublic, eventId);
       return true;
     } catch (e) {
       throw Exception("Failed to remove event: $e");
@@ -124,12 +125,12 @@ class EventController {
       final event = await createEvent(newEvent['title'],
           newEvent['description'], newEvent['date'], newEvent['isPublic']);
 
-      final giftList = giftController.getGiftsByEventId(
+      final giftList = _giftController.getGiftsByEventId(
           oldEvent['isPublic'], oldEvent['id']);
 
       await for (var gifts in giftList) {
         for (var gift in gifts) {
-          await giftController.createGift(
+          await _giftController.createGift(
             newEvent['isPublic'],
             event['id'],
             gift['name'],
@@ -151,5 +152,46 @@ class EventController {
       print('Error: $e');
       throw Exception('Failed to update event visibility: $e');
     }
+  }
+
+  List<Map<String, dynamic>> filterAndSortEvents(
+      List<Map<String, dynamic>> events, String sortOption, String filter) {
+    final now = DateTime.now();
+
+    // Filter by event date
+    if (filter != 'All') {
+      events = events.where((event) {
+        final eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
+        switch (filter) {
+          case 'Upcoming':
+            return eventDate.isAfter(now);
+          case 'Current':
+            return eventDate.year == now.year &&
+                eventDate.month == now.month &&
+                eventDate.day == now.day;
+          case 'Past':
+            return eventDate.isBefore(DateTime(now.year, now.month, now.day));
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
+    // Sort by selected option
+    switch (sortOption) {
+      case 'Title':
+        events.sort((a, b) => a['title'].compareTo(b['title']));
+        break;
+      case 'Date':
+        events
+            .sort((a, b) => DateFormat('yyyy-MM-dd').parse(a['date']).compareTo(
+                  DateFormat('yyyy-MM-dd').parse(b['date']),
+                ));
+        break;
+      default:
+        break;
+    }
+
+    return events;
   }
 }

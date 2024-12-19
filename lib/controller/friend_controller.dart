@@ -1,80 +1,70 @@
 import '/services/shared_preferences_manager.dart';
-import '/services/firebase_manager.dart';
-import '/models/user_model.dart';
 import '/models/friend_model.dart';
 import '/controller/user_controller.dart';
 
 class FriendController {
-  final FirebaseManager firebase = FirebaseManager();
-  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
-  final UserController userController = UserController();
+  final SharedPreferencesManager _sharedPreferences = SharedPreferencesManager();
+  final UserController _userController = UserController();
 
-  // Add Friend
+  /// Adds a friend by email or phone number.
   Future<bool> addFriend(bool isAddingByEmail, String input) async {
     try {
-      final friend =
-          await userController.getUserDetails(isAddingByEmail, input);
-      if (friend.docs.isNotEmpty) {
-        String currentUserId = await sharedPreferences.getUserId();
+      String currentUserId = await _sharedPreferences.getUserId();
 
-        FriendModel friends = FriendModel(
+      final friendId = await _userController.getUserId(isAddingByEmail, input);
+
+      //TODO: REMOVE THE FOLLOWING COMMENT
+      if (friendId != null /*&& friendId != currentUserId*/) {
+        FriendModel friend = FriendModel(
           userId: currentUserId,
-          friendId: friend.docs.first.id,
+          friendId: friendId,
         );
-        await firebase.addFriend(friends.toMap());
+        await friend.addFriend();
         return true;
-      } else {
-        return false;
       }
+
+      print('Friend ID not found.');
+      return false;
     } catch (e) {
       print('Error adding friend: $e');
       return false;
     }
   }
 
-  // Show Friends
+  /// Streams the list of friends with their details.
   Stream<List<Map<String, dynamic>>> showFriends() async* {
     try {
-      String userId = await sharedPreferences.getUserId();
-      final friendsStream = firebase.getFriendsIds(userId);
+      String userId = await _sharedPreferences.getUserId();
+
+      final friendsStream = FriendModel.getFriendsIds(userId);
 
       await for (final friendSnapshot in friendsStream) {
         List<String> friendIds =
             friendSnapshot.docs.map((doc) => doc.id).toList();
 
         if (friendIds.isNotEmpty) {
-          final friendsDetailsSnapshot =
-              await firebase.getFriendsDetails(friendIds);
-
-          final friendsList = friendsDetailsSnapshot.docs.map((doc) {
-            UserModel user = UserModel(
-              id: doc.id,
-              photoURL: doc['photoURL'],
-              name: doc['name'],
-              phoneNumber: doc['phoneNumber'],
-              email: doc['email'],
-            );
-            return user.toMap();
-          }).toList();
-
+          final friendsList = await _userController.getUsersDetails(friendIds);
           yield friendsList;
         } else {
-          yield []; // Yield an empty list if no friends
+          yield []; // Emit an empty list if no friends are found.
         }
       }
     } catch (e) {
-      print('Error in loading friends: $e');
-      yield []; // Yield an empty list in case of error
+      print('Error loading friends: $e');
+      yield []; // Emit an empty list on error.
     }
   }
 
+  /// Filters the list of friends based on a search query.
   List<Map<String, dynamic>> filterFriends(
       List<Map<String, dynamic>> friends, String query) {
     return friends
-        .where((friend) => friend['name']
-            .toString()
-            .toLowerCase()
-            .contains(query.toLowerCase()))
+        .where((friend) =>
+            friend['name'] != null &&
+            friend['name']
+                .toString()
+                .toLowerCase()
+                .contains(query.toLowerCase()))
         .toList();
   }
 }

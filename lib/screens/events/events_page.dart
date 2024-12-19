@@ -16,7 +16,7 @@ class _EventsPageState extends State<EventsPage> {
   late String userId;
   late bool showFull;
 
-  final EventController controller = EventController();
+  final EventController _controller = EventController();
 
   // Sorting, Filtering, and Day Variables
   String _selectedSortOption = 'Title';
@@ -43,13 +43,16 @@ class _EventsPageState extends State<EventsPage> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => AddEventPage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  AddEventPage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 const begin = Offset(0.0, 1.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
 
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
                 var offsetAnimation = animation.drive(tween);
 
                 return SlideTransition(
@@ -87,7 +90,8 @@ class _EventsPageState extends State<EventsPage> {
                             icon: const Icon(Icons.sort,
                                 color: Colors.blueAccent),
                             isExpanded: true,
-                            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black87),
                             onChanged: (String? newValue) {
                               setState(() {
                                 _selectedSortOption = newValue!;
@@ -151,21 +155,22 @@ class _EventsPageState extends State<EventsPage> {
           // Event List
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: controller.getEventsByUserId(userId, showFull),
+              stream: _controller.getEventsByUserId(userId, showFull),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
-                      child: Text(
-                    'No events found.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ));
+                    child: Text(
+                      'No events found.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  );
                 }
 
-                // Apply Filtering and Sorting
-                final events = _filterAndSortEvents(snapshot.data!);
+                // Apply sorting and filtering
+                final events = _controller.filterAndSortEvents(snapshot.data!, _selectedSortOption, _selectedDayFilter);
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -178,7 +183,8 @@ class _EventsPageState extends State<EventsPage> {
                       margin: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 6),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 16),
@@ -241,43 +247,6 @@ class _EventsPageState extends State<EventsPage> {
       ),
       bottomNavigationBar: showFull ? CustomBottomNavigationBar() : null,
     );
-  }
-
-  List<Map<String, dynamic>> _filterAndSortEvents(
-      List<Map<String, dynamic>> events) {
-    final now = DateTime.now();
-
-    // Filtering by Day
-    events = events.where((event) {
-      final eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
-      switch (_selectedDayFilter) {
-        case 'Upcoming':
-          return eventDate.isAfter(now);
-        case 'Current':
-          return eventDate.year == now.year &&
-              eventDate.month == now.month &&
-              eventDate.day == now.day;
-        case 'Past':
-          return eventDate.isBefore(now);
-        default:
-          return true;
-      }
-    }).toList();
-
-    // Sorting
-    switch (_selectedSortOption) {
-      case 'Title':
-        events.sort((a, b) => a['title'].compareTo(b['title']));
-        break;
-      case 'Date':
-        events
-            .sort((a, b) => DateFormat('yyyy-MM-dd').parse(a['date']).compareTo(
-                  DateFormat('yyyy-MM-dd').parse(b['date']),
-                ));
-        break;
-    }
-
-    return events;
   }
 
   Future<void> _editEvent(Map<String, dynamic> event) async {
@@ -344,7 +313,7 @@ class _EventsPageState extends State<EventsPage> {
                     String updatedDescription = descriptionController.text;
                     String updatedDate = dateController.text;
 
-                    if (await controller.editEvent(event, updatedTitle,
+                    if (await _controller.editEvent(event, updatedTitle,
                         updatedDescription, updatedDate, updatedIsPublic)) {
                       Navigator.of(context).pop();
                     } else {
@@ -360,7 +329,7 @@ class _EventsPageState extends State<EventsPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (await controller.deleteEvent(
+                    if (await _controller.deleteEvent(
                         event['isPublic'], event['id'])) {
                       Navigator.of(context).pop();
                     } else {

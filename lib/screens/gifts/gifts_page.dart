@@ -16,7 +16,7 @@ class _GiftsPageState extends State<GiftsPage> {
   late bool eventIsPublic;
   late bool showFull;
 
-  final GiftController controller = GiftController();
+  final GiftController _controller = GiftController();
 
   // Sorting and Filtering Variables
   String _selectedSortOption = 'Name';
@@ -162,7 +162,7 @@ class _GiftsPageState extends State<GiftsPage> {
           // Gifts List
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: controller.getGiftsByEventId(eventIsPublic, eventId),
+              stream: _controller.getGiftsByEventId(eventIsPublic, eventId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -172,7 +172,7 @@ class _GiftsPageState extends State<GiftsPage> {
                 }
 
                 // Apply sorting and filtering
-                final gifts = _filterAndSortGifts(snapshot.data!);
+                final gifts = _controller.filterAndSortGifts(snapshot.data!, _selectedSortOption, _selectedCategory);
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(8.0),
@@ -221,23 +221,7 @@ class _GiftsPageState extends State<GiftsPage> {
     );
   }
 
-  List<Map<String, dynamic>> _filterAndSortGifts(
-      List<Map<String, dynamic>> gifts) {
-    // Filter by Category
-    if (_selectedCategory != 'All') {
-      gifts =
-          gifts.where((gift) => gift['category'] == _selectedCategory).toList();
-    }
 
-    // Sort by selected option
-    if (_selectedSortOption == 'Name') {
-      gifts.sort((a, b) => a['name'].compareTo(b['name']));
-    } else if (_selectedSortOption == 'Price') {
-      gifts.sort((a, b) => a['price'].compareTo(b['price']));
-    }
-
-    return gifts;
-  }
 
   Future<void> _editGift(Map<String, dynamic> gift) async {
     showDialog(
@@ -286,7 +270,7 @@ class _GiftsPageState extends State<GiftsPage> {
                 String category = categoryController.text;
                 int price = int.parse(priceController.text.trim());
 
-                if (await controller.editGift(
+                if (await _controller.editGift(
                     eventIsPublic,
                     gift['id'],
                     gift['eventId'],
@@ -309,7 +293,7 @@ class _GiftsPageState extends State<GiftsPage> {
             ),
             TextButton(
               onPressed: () async {
-                if (await controller.deleteGift(eventIsPublic, gift['id'])) {
+                if (await _controller.deleteGift(eventIsPublic, gift['id'])) {
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -71,7 +71,7 @@ class _UpdateInfoPageState extends State<UpdateInfoPage> {
     );
   }
 
-  void _saveChanges() async{
+  void _saveChanges() async {
     final updatedName = nameController.text.trim();
     final updatedPhone = phoneController.text.trim();
 
@@ -85,14 +85,10 @@ class _UpdateInfoPageState extends State<UpdateInfoPage> {
       return;
     } else {
       final UserController controller = UserController();
-      final SharedPreferencesManager sharedPreferences =
-          SharedPreferencesManager();
 
-      final userId = await sharedPreferences.getUserId();
       await controller.updateUser(
-        userId,
-        name: updatedName.isNotEmpty ? updatedName : null,
-        phone: updatedPhone.isNotEmpty ? updatedPhone : null,
+        updatedName.isNotEmpty ? updatedName : null,
+        updatedPhone.isNotEmpty ? updatedPhone : null,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

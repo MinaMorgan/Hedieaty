@@ -9,8 +9,8 @@ class EventModel {
   String date;
   bool isPublic;
 
-  static FirebaseManager firebase = FirebaseManager();
-  static LocalDatabaseManager localDb = LocalDatabaseManager();
+  static final FirebaseManager _firebase = FirebaseManager();
+  static final LocalDatabaseManager _localDb = LocalDatabaseManager();
 
   EventModel({
     required this.userId,
@@ -43,38 +43,38 @@ class EventModel {
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // FireStore Functions
   static Future<String> createPublicEvent(EventModel event) async {
-    return await firebase.addEvent(event.toPublicMap());
+    return await _firebase.addEvent(event.toPublicMap());
   }
 
   static Future<void> updatePublicEvent(String id, EventModel event) async {
-    await firebase.updateEvent(id, event.toPublicMap());
+    await _firebase.updateEvent(id, event.toPublicMap());
   }
 
   static Future<void> deletePublicEvent(String id) async {
-    await firebase.removeEvent(id);
+    await _firebase.removeEvent(id);
   }
 
   static Stream<QuerySnapshot<Map<String, dynamic>>> getPublicEvents(
       String id) {
-    return firebase.getEvents(id);
+    return _firebase.getEvents(id);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Local Database Functions
   static Future<String> createPrivateEvent(EventModel event) async {
-    final id =  await localDb.addEvent(event.toPrivateMap());
+    final id = await _localDb.addEvent(event.toPrivateMap());
     return id.toString();
   }
 
   static Future<void> updatePrivateEvent(String id, EventModel event) async {
-    await localDb.updateEvent(int.parse(id), event.toPrivateMap());
+    await _localDb.updateEvent(int.parse(id), event.toPrivateMap());
   }
 
   static Future<void> deletePrivateEvent(String id) async {
-    await localDb.removeEvent(int.parse(id));
+    await _localDb.removeEvent(int.parse(id));
   }
 
   static Future<List<Map<String, dynamic>>> getPrivateEvents(String id) {
-    return localDb.getEvents(id);
+    return _localDb.getEvents(id);
   }
 }

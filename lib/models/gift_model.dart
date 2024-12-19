@@ -14,8 +14,8 @@ class GiftModel {
   String? pledgeUserName;
   String? pledgeDate;
 
-  static FirebaseManager firebase = FirebaseManager();
-  static LocalDatabaseManager localDb = LocalDatabaseManager();
+  static final FirebaseManager _firebase = FirebaseManager();
+  static final LocalDatabaseManager _localDb = LocalDatabaseManager();
 
   GiftModel(
       {required this.eventId,
@@ -62,52 +62,60 @@ class GiftModel {
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // FireStore Functions
   static Future<void> createPublicGift(GiftModel gift) async {
-    await firebase.addGift(gift.toPublicMap());
+    await _firebase.addGift(gift.toPublicMap());
   }
 
   static Future<void> updatePublicGift(String id, GiftModel gift) async {
-    await firebase.updateGift(id, gift.toPublicMap());
+    await _firebase.updateGift(id, gift.toPublicMap());
   }
 
   static Future<void> deletePublicGift(String id) async {
-    await firebase.removeGift(id);
+    await _firebase.removeGift(id);
   }
 
   static Stream<DocumentSnapshot> getPublicGift(String id) {
-    return firebase.getGift(id);
+    return _firebase.getGift(id);
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getPublicGiftsByEventId(String eventId) {
-    return firebase.getGiftsByEventId(eventId);
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getPublicGiftsByEventId(
+      String eventId) {
+    return _firebase.getGiftsByEventId(eventId);
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getPledgedGifts(String userId) {
-    return firebase.getPLedgedGifts(userId);
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getPledgedGifts(
+      String userId) {
+    return _firebase.getPLedgedGifts(userId);
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyPledgedGifts(
+      String userId) {
+    return _firebase.getMyPLedgedGifts(userId);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Local Database Functions
   static Future<void> createPrivateGift(GiftModel gift) async {
-    await localDb.addGift(gift.toPrivateMap()).toString();
+    await _localDb.addGift(gift.toPrivateMap());
   }
 
   static Future<void> updatePrivateGift(String id, GiftModel gift) async {
-    await localDb.updateGift(int.parse(id), gift.toPrivateMap());
+    await _localDb.updateGift(int.parse(id), gift.toPrivateMap());
   }
 
   static Future<void> deletePrivateGift(String id) async {
-    await localDb.removeGift(int.parse(id));
+    await _localDb.removeGift(int.parse(id));
   }
 
   static Future<void> deletePrivateGiftsByEventId(String eventId) async {
-    await localDb.removeGiftByEventId(eventId);
+    await _localDb.removeGiftByEventId(eventId);
   }
 
   static Future<Map<String, dynamic>> getPrivateGift(String id) {
-    return localDb.getGift(int.parse(id));
+    return _localDb.getGift(int.parse(id));
   }
 
-  static Future<List<Map<String, dynamic>>> getPrivateGiftsByEventId(String eventId) {
-    return localDb.getGiftsByEventId(eventId);
+  static Future<List<Map<String, dynamic>>> getPrivateGiftsByEventId(
+      String eventId) {
+    return _localDb.getGiftsByEventId(eventId);
   }
 }

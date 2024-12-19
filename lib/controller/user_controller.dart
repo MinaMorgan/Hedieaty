@@ -1,115 +1,149 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '/services/shared_preferences_manager.dart';
 import '/services/image_uploader.dart';
-import '/services/firebase_manager.dart';
 import '/models/user_model.dart';
 
 class UserController {
-  final FirebaseManager firebase = FirebaseManager();
-  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
+  static final SharedPreferencesManager _sharedPreferences =
+      SharedPreferencesManager();
 
-  // Register
+  /// Registers a new user and stores their information in Firestore.
   Future<bool> register(File? photo, String name, String phoneNumber,
       String email, String password) async {
+    const defaultPhotoURL =
+        'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png';
+
     try {
-      final result = await firebase.authSignUp(email, password);
+      final result = await UserModel.signUpAuth(email, password);
       final firebaseUser = result.user;
 
-      String photoURL;
-      if (photo != null) {
-        photoURL = await ImageUploadService().uploadImageToImgur(photo) ??
-            'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png';
-      } else {
-        photoURL =
-            'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png';
-      }
-
       if (firebaseUser != null) {
+        final photoURL = photo != null
+            ? (await ImageUploadService().uploadImageToImgur(photo) ??
+                defaultPhotoURL)
+            : defaultPhotoURL;
+
         UserModel user = UserModel(
           id: firebaseUser.uid,
-          photoURL: photoURL,
+          email: email,
           name: name,
           phoneNumber: phoneNumber,
-          email: email,
+          photoURL: photoURL,
         );
-        await firebase.storeSignUp(firebaseUser.uid, user.toMap());
+
+        await user.signUpStore();
+        return true;
       }
-      return true;
-    } catch (e) {
+      return false;
+    } catch (e, stackTrace) {
       print('Sign up error: $e');
+      print('Stack trace: $stackTrace');
       return false;
     }
   }
 
-  // Login
+  /// Logs in a user and retrieves their data from Firestore.
   Future<bool> login(String email, String password) async {
     try {
-      await firebase.signIn(email, password);
-      await _saveUserInSharedPrefernces();
+      final result = await UserModel.signInAuth(email, password);
+      final firebaseUser = result.user;
 
-      return true;
+      if (firebaseUser != null) {
+        final snapshot = await UserModel.getUserById(firebaseUser.uid);
+        final userData = snapshot.data();
+
+        if (userData == null) throw Exception('User data not found.');
+
+        final user = UserModel(
+          id: firebaseUser.uid,
+          email: userData['email'],
+          name: userData['name'],
+          phoneNumber: userData['phoneNumber'],
+          photoURL: userData['photoURL'],
+        );
+
+        await user.saveUser();
+        return true;
+      }
+      return false;
     } catch (e) {
       print('Login error: $e');
       return false;
     }
   }
 
-  Future<void> _saveUserInSharedPrefernces() async {
+  /// Logs out the current user.
+  Future<void> logOut() async {
+    await UserModel.unSaveUser();
+    await UserModel.signOut();
+  }
+
+  /// Updates the user's profile information in Firestore.
+  Future<bool> updateUser(String? name, String? phone) async {
     try {
-      String userId = await firebase.currentUser.uid;
+      final userId = await _sharedPreferences.getUserId();
+      final snapshot = await UserModel.getUserById(userId);
+      final userData = snapshot.data();
 
-      // Fetch user details from Firestore
-      DocumentSnapshot<Map<String, dynamic>> userDetails =
-          await firebase.getUserDetailsById(userId);
+      if (userData == null) throw Exception('User data not found.');
 
-      // Add userId explicitly to the map
-      Map<String, dynamic> userData = userDetails.data()!;
-      userData['userId'] = userId;
+      UserModel user = UserModel(
+        id: userId,
+        email: userData['email'],
+        name: userData['name'],
+        phoneNumber: userData['phoneNumber'],
+        photoURL: userData['photoURL'],
+      );
 
-      await sharedPreferences.saveUserDetails(userData);
-    } catch (e) {
-      print('Saving data to shared preferences error: $e');
-    }
-  }
+      if (name != null) user.name = name;
+      if (phone != null) user.phoneNumber = phone;
 
-  // Get Current User Details
-  Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUserDetails(
-      String userId) async {
-    return await firebase.getUserDetailsById(userId);
-  }
-
-  // Get User Details by Email or Phone Number
-  Future<QuerySnapshot> getUserDetails(
-      bool isAddingByEmail, String input) async {
-    if (isAddingByEmail) {
-      return await firebase.getUserByEmail(input);
-    } else {
-      return await firebase.getUserByPhoneNumber(input);
-    }
-  }
-
-  // Updates the user information in Firestore.
-  Future<bool> updateUser(String userId, {String? name, String? phone}) async {
-    try {
-      // Build update map dynamically
-      final Map<String, String> updateData = {};
-      if (name != null) updateData['name'] = name;
-      if (phone != null) updateData['phoneNumber'] = phone;
-
-      // Update user document in Firestore
-      await firebase.updateUser(userId, updateData);
-
+      await user.updateUser();
+      await user.saveUser();
       return true;
     } catch (e) {
-      print("Error updating user: $e");
+      print('Error updating user: $e');
       return false;
     }
   }
 
-  // Log out
-  Future<void> logOut() async {
-    await sharedPreferences.clearAll();
-    await firebase.signOut();
+  /// Retrieves a user's ID by email or phone number.
+  Future<String?> getUserId(bool isAddingByEmail, String input) async {
+    try {
+      final snapshot = isAddingByEmail
+          ? await UserModel.getUserByEmail(input)
+          : await UserModel.getUserByPhoneNumber(input);
+
+      if (snapshot.docs.isEmpty) {
+        throw Exception('No user found for input: $input');
+      }
+      return snapshot.docs.first.id;
+    } catch (e) {
+      print('Error fetching user ID: $e');
+      return null;
+    }
+  }
+
+  /// Retrieves many users' details.
+  Future<List<Map<String, dynamic>>> getUsersDetails(
+      List<String> usersIds) async {
+    try {
+      final usersDetailsSnapshot = await UserModel.getUsersDetails(usersIds);
+
+      final usersList = usersDetailsSnapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'email': doc.data()['email'],
+          'name': doc.data()['name'],
+          'phoneNumber': doc.data()['phoneNumber'],
+          'photoURL': doc.data()['photoURL'],
+        };
+      }).toList();
+
+      return usersList;
+    } catch (e) {
+      print('Error fetching users details: $e');
+      return [];
+    }
   }
 }

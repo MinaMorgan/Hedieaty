@@ -4,7 +4,8 @@ import '/services/shared_preferences_manager.dart';
 import '/models/gift_model.dart';
 
 class GiftController {
-  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
+  final SharedPreferencesManager _sharedPreferences =
+      SharedPreferencesManager();
 
   // Create new Gift
   Future<bool> createGift(
@@ -19,7 +20,7 @@ class GiftController {
       String? pledgeUserName,
       String? pledgeDate) async {
     try {
-      String userId = await sharedPreferences.getUserId();
+      String userId = await _sharedPreferences.getUserId();
       GiftModel newGift = GiftModel(
         eventId: eventId,
         userId: userId,
@@ -55,7 +56,7 @@ class GiftController {
       int price,
       bool status) async {
     try {
-      String userId = await sharedPreferences.getUserId();
+      String userId = await _sharedPreferences.getUserId();
       GiftModel updatedGift = GiftModel(
         eventId: eventId,
         userId: userId,
@@ -179,8 +180,19 @@ class GiftController {
   // Get Pledged Gifts
   Stream<QuerySnapshot<Map<String, dynamic>>> getPledgedGifts() async* {
     try {
-      String userId = await sharedPreferences.getUserId();
+      String userId = await _sharedPreferences.getUserId();
       final pledgedGifts = GiftModel.getPledgedGifts(userId);
+      yield* pledgedGifts;
+    } catch (e) {
+      throw Exception('Error fetching pledged gifts for user: $e');
+    }
+  }
+
+  // Get My Pledged Gifts
+  Stream<QuerySnapshot<Map<String, dynamic>>> getMyPledgedGifts() async* {
+    try {
+      String userId = await _sharedPreferences.getUserId();
+      final pledgedGifts = GiftModel.getMyPledgedGifts(userId);
       yield* pledgedGifts;
     } catch (e) {
       throw Exception('Error fetching pledged gifts for user: $e');
@@ -193,8 +205,8 @@ class GiftController {
       DateTime date = DateTime.now();
       String pledgedDate = DateFormat('yyyy-MM-dd').format(date);
 
-      String userId = await sharedPreferences.getUserId();
-      String userName = await sharedPreferences.getName();
+      String userId = await _sharedPreferences.getUserId();
+      String userName = await _sharedPreferences.getName();
 
       print(userId);
       GiftModel pledgedGift = GiftModel(
@@ -216,5 +228,22 @@ class GiftController {
     } catch (e) {
       throw ("Failed to Pledge gift: $e");
     }
+  }
+
+  List<Map<String, dynamic>> filterAndSortGifts(
+      List<Map<String, dynamic>> gifts, String sortOption, String filter) {
+    // Filter by Category
+    if (filter != 'All') {
+      gifts = gifts.where((gift) => gift['category'] == filter).toList();
+    }
+
+    // Sort by selected option
+    if (sortOption == 'Name') {
+      gifts.sort((a, b) => a['name'].compareTo(b['name']));
+    } else if (sortOption == 'Price') {
+      gifts.sort((a, b) => a['price'].compareTo(b['price']));
+    }
+
+    return gifts;
   }
 }
