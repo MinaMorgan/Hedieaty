@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hedieaty/services/shared_preferences_manager.dart';
 import '/widgets/gradient_appbar.dart';
 import '/controller/gift_controller.dart';
 
@@ -12,34 +10,43 @@ class GiftDetailsPage extends StatefulWidget {
 }
 
 class _GiftDetailsPageState extends State<GiftDetailsPage> {
-  final SharedPreferencesManager sharedPreferences = SharedPreferencesManager();
-
   late String giftId;
+  late bool isPublic;
   late bool allowPledge;
+
   final GiftController controller = GiftController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
     giftId = args['giftId'];
+    isPublic = args['eventIsPublic'];
     allowPledge = args['allowPledge'];
   }
 
-  void _pledgeGift() async {
-    String userId = await sharedPreferences.getUserId();
+  // Function to pledge the gift
+  void _pledgeGift(Map<String, dynamic> gift) async {
+    try {
+      // Update the gift status to pledged
+      await controller.pledgeGift(gift);
 
-    // Update the gift status to pledged
-    await controller.pledgeGift(giftId, userId);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Gift successfully pledged!'),
-        backgroundColor: Colors.green,
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gift successfully pledged!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to pledge the gift.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -48,68 +55,64 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
       appBar: GradientAppBar(
         title: 'Gift Details',
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: controller.getGiftById(giftId),
+      body: StreamBuilder<Map<String, dynamic>>(
+        stream: controller.getGiftDetails(isPublic, giftId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || !snapshot.data!.exists) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Gift not found.'));
           }
 
-          // Real-time gift data
-          final giftData = snapshot.data!.data() as Map<String, dynamic>;
-
-          final String name = giftData['name'];
-          final String description = giftData['description'];
-          final String category = giftData['category'];
-          final int price = giftData['price'];
-          final bool status = giftData['status'];
+          final gift = snapshot.data!;
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
                 Text(
-                  name,
+                  gift['name'],
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                Text(
+                const Text(
                   'Description:',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  description,
+                  gift['description'],
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16.0),
-                Text(
+                const Text(
                   'Category:',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  category,
+                  gift['category'],
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16.0),
-                Text(
+                const Text(
                   'Price:',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  '\$$price',
+                  '\$${gift['price']}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16.0),
@@ -117,25 +120,27 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                   children: [
                     const Text(
                       'Status: ',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
-                      status ? 'Available' : 'Pledged',
+                      gift['status'] ? 'Available' : 'Pledged',
                       style: TextStyle(
                         fontSize: 16,
-                        color: status ? Colors.green : Colors.red,
+                        color: gift['status'] ? Colors.green : Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 32.0),
-                // Pledge Button
-                if (allowPledge && status)
+                // Show pledge button if allowed
+                if (allowPledge && gift['status'])
                   Center(
                     child: ElevatedButton.icon(
-                      onPressed: _pledgeGift,
+                      onPressed: () => _pledgeGift(gift),
                       icon: const Icon(Icons.volunteer_activism,
                           color: Colors.white),
                       label: const Text(

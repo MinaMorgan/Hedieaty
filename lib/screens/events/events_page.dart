@@ -170,7 +170,8 @@ class _EventsPageState extends State<EventsPage> {
                 }
 
                 // Apply sorting and filtering
-                final events = _controller.filterAndSortEvents(snapshot.data!, _selectedSortOption, _selectedDayFilter);
+                final events = _controller.filterAndSortEvents(
+                    snapshot.data!, _selectedSortOption, _selectedDayFilter);
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -279,9 +280,29 @@ class _EventsPageState extends State<EventsPage> {
                           const InputDecoration(labelText: 'Description'),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: dateController,
-                      decoration: const InputDecoration(labelText: 'Date'),
+                    GestureDetector(
+                      onTap: () async {
+                        // Show the date picker when the TextField is tapped
+                        final DateTime? selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate:
+                              DateFormat('yyyy-MM-dd').parse(event['date']),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(2100),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            dateController.text =
+                                DateFormat('yyyy-MM-dd').format(selectedDate);
+                          });
+                        }
+                      },
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: dateController,
+                          decoration: const InputDecoration(labelText: 'Date'),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(
