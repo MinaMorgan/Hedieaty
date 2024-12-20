@@ -62,7 +62,8 @@ class EventController {
       }
       return true;
     } catch (e) {
-      throw Exception("Failed to update event: $e");
+      print("Failed to update event: $e");
+      return false;
     }
   }
 
@@ -70,7 +71,6 @@ class EventController {
   Future<bool> deleteEvent(bool isPublic, String eventId) async {
     try {
       if (isPublic) {
-        print(eventId.runtimeType);
         await EventModel.deletePublicEvent(eventId);
       } else {
         await EventModel.deletePrivateEvent(eventId);
@@ -78,7 +78,8 @@ class EventController {
       _giftController.deleteGiftsByEventId(isPublic, eventId);
       return true;
     } catch (e) {
-      throw Exception("Failed to remove event: $e");
+      print("Failed to remove event: $e");
+      return false;
     }
   }
 
@@ -88,15 +89,14 @@ class EventController {
     try {
       final List<Map<String, dynamic>> events = [];
 
-      // Fetch Private Events
+      // Fetch Public Events
       if (showLocal) {
         final privateEvents = await EventModel.getPrivateEvents(userId);
         final localEvents = privateEvents.map((event) {
-          // Fix the type conversion
+          // Fix type conversion
           final updatedEvent = Map<String, dynamic>.from(event);
           updatedEvent['id'] = event['id'].toString();
           updatedEvent['isPublic'] = false;
-
           return updatedEvent;
         }).toList();
         events.addAll(localEvents);
@@ -110,6 +110,7 @@ class EventController {
           data['id'] = doc.id;
           return data;
         }).toList();
+
         events.addAll(firebaseEvents);
         yield events;
       }
@@ -118,39 +119,47 @@ class EventController {
     }
   }
 
+  //TODO:
   // Change Visibility
   Future<void> updateEventVisibility(
       Map<String, dynamic> oldEvent, Map<String, dynamic> newEvent) async {
     try {
-      final event = await createEvent(newEvent['title'],
-          newEvent['description'], newEvent['date'], newEvent['isPublic']);
+      // Create the new event
+      final event = await createEvent(
+        newEvent['title'],
+        newEvent['description'],
+        newEvent['date'],
+        newEvent['isPublic'],
+      );
 
-      final giftList = _giftController.getGiftsByEventId(
-          oldEvent['isPublic'], oldEvent['id']);
-
-      await for (var gifts in giftList) {
-        for (var gift in gifts) {
-          await _giftController.createGift(
-            newEvent['isPublic'],
-            event['id'],
-            gift['name'],
-            gift['description'],
-            gift['category'],
-            gift['price'],
-            gift['status'],
-            gift['pledgeUserId'],
-            gift['pledgeUserName'],
-            gift['pledgeDate'],
-          );
-          print('Gift created: $gift');
-        }
-        print('here1');
+      if (!(event['success'] ?? false)) {
+        throw Exception('Failed to create the new event.');
       }
+
+      // Migrate gifts to the new event
+      final gifts = await _giftController
+          .getGiftsByEventId(oldEvent['isPublic'], oldEvent['id'])
+          .first;
+
+      for (var gift in gifts) {
+        await _giftController.createGift(
+          newEvent['isPublic'],
+          event['id'],
+          gift['name'],
+          gift['description'],
+          gift['category'],
+          gift['price'],
+          gift['status'],
+          gift['pledgeUserId'],
+          gift['pledgeUserName'],
+          gift['pledgeDate'],
+        );
+      }
+
+      // Delete the old event
       await deleteEvent(oldEvent['isPublic'], oldEvent['id']);
-      print('here111');
     } catch (e) {
-      print('Error: $e');
-      throw Exception('Failed to update event visibility: $e');
+      print('Failed to update event visibility: $e');
     }
   }
 
@@ -183,10 +192,9 @@ class EventController {
         events.sort((a, b) => a['title'].compareTo(b['title']));
         break;
       case 'Date':
-        events
-            .sort((a, b) => DateFormat('yyyy-MM-dd').parse(a['date']).compareTo(
-                  DateFormat('yyyy-MM-dd').parse(b['date']),
-                ));
+        events.sort((a, b) => DateFormat('yyyy-MM-dd')
+            .parse(a['date'])
+            .compareTo(DateFormat('yyyy-MM-dd').parse(b['date'])));
         break;
       default:
         break;

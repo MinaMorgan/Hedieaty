@@ -208,7 +208,6 @@ class GiftController {
       String userId = await _sharedPreferences.getUserId();
       String userName = await _sharedPreferences.getName();
 
-      print(userId);
       GiftModel pledgedGift = GiftModel(
         eventId: gift['eventId'],
         userId: gift['userId'],
@@ -221,7 +220,6 @@ class GiftController {
         pledgeUserName: userName,
         pledgeDate: pledgedDate,
       );
-      print(gift);
 
       await GiftModel.updatePublicGift(gift['id'], pledgedGift);
       return true;

@@ -11,22 +11,14 @@ class PledgedGiftsPage extends StatefulWidget {
 }
 
 class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
-  late String userId;
   final GiftController controller = GiftController();
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    userId = ModalRoute.of(context)!.settings.arguments as String;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const GradientAppBar(title: 'My Pledged Gifts'),
       body: StreamBuilder<QuerySnapshot>(
-        stream: controller.getPledgedGifts(userId),
+        stream: controller.getMyPledgedGifts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -69,7 +61,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                       ),
                       const SizedBox(height: 8.0),
                       Text(
-                        'Pledged by: ${giftData['pledgedUserId'] ?? 'Unknown'}',
+                        'Owner: ${giftData['pledgeUserName']}', //todo: Should appear owner name
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -77,7 +69,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                       ),
                       const SizedBox(height: 8.0),
                       Text(
-                        'Due Date: ${giftData['dueDate'] ?? 'No due date'}',
+                        'Pledge Date: ${giftData['pledgeDate']}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -88,6 +80,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                   onTap: () {
                     Navigator.pushNamed(context, '/giftDetails', arguments: {
                       'giftId': pledgedGifts[index].id,
+                      'eventIsPublic': true,
                       'allowPledge': false
                     });
                   },

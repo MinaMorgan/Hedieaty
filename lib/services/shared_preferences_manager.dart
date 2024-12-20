@@ -14,25 +14,15 @@ class SharedPreferencesManager {
   static const String _photoUrlKey = 'photoURL';
 
   // Save user details
-  Future<void> saveUserDetails(Map<String, dynamic> userDetails) async {
+  Future<void> saveUserDetails(
+      String userId, Map<String, dynamic> userDetails) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Ensure keys exist in the provided map
-    if (userDetails.containsKey('userId')) {
-      await prefs.setString(_userIdKey, userDetails['userId']);
-    }
-    if (userDetails.containsKey('name')) {
-      await prefs.setString(_nameKey, userDetails['name']);
-    }
-    if (userDetails.containsKey('email')) {
-      await prefs.setString(_emailKey, userDetails['email']);
-    }
-    if (userDetails.containsKey('phoneNumber')) {
-      await prefs.setString(_phoneNumberKey, userDetails['phoneNumber']);
-    }
-    if (userDetails.containsKey('photoURL')) {
-      await prefs.setString(_photoUrlKey, userDetails['photoURL']);
-    }
+    await prefs.setString(_userIdKey, userId);
+    await prefs.setString(_emailKey, userDetails['email']);
+    await prefs.setString(_nameKey, userDetails['name']);
+    await prefs.setString(_phoneNumberKey, userDetails['phoneNumber']);
+    await prefs.setString(_photoUrlKey, userDetails['photoURL']);
   }
 
   // Get user details
@@ -40,15 +30,13 @@ class SharedPreferencesManager {
     final prefs = await SharedPreferences.getInstance();
 
     return {
-      'userId': prefs.getString(_userIdKey) ?? '', // Provide default value
-      'name': prefs.getString(_nameKey) ?? 'Unknown',
-      'email': prefs.getString(_emailKey) ?? 'Unknown',
-      'phoneNumber': prefs.getString(_phoneNumberKey) ?? 'Unknown',
-      'photoURL': prefs.getString(_photoUrlKey) ??
-          'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-Clipart.png',
+      'userId': prefs.getString(_userIdKey),
+      'name': prefs.getString(_nameKey),
+      'email': prefs.getString(_emailKey),
+      'phoneNumber': prefs.getString(_phoneNumberKey),
+      'photoURL': prefs.getString(_photoUrlKey),
     };
   }
-
 
   // Get ID
   Future<String> getUserId() async {

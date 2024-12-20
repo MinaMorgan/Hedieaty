@@ -6,7 +6,7 @@ class FirebaseManager {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   //////////////////////////////////////////// Users ////////////////////////////////////////////
-  // Sign up Authentication
+  /// Sign up Authentication
   Future<UserCredential> authSignUp(String email, String password) async {
     return await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -14,31 +14,36 @@ class FirebaseManager {
     );
   }
 
-  // Sign up Store
-  Future<void> storeSignUp(String id, Map<String, String> user) async {
-    await _firestore.collection('users').doc(id).set(user);
+  /// Sign up Store
+  Future<void> storeSignUp(String userId, Map<String, String> user) async {
+    await _firestore.collection('users').doc(userId).set(user);
   }
 
-  // Sign in
-  Future<void> signIn(String email, String password) async {
-    await _auth.signInWithEmailAndPassword(
+  /// Sign in Authentication
+  Future<UserCredential> signIn(String email, String password) async {
+    return await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
-  // Get Current User
-  get currentUser {
-    return _auth.currentUser;
+  /// Sign out
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 
-  // Get User Details by Id
-  Future<DocumentSnapshot<Map<String, dynamic>>> getUserDetailsById(
+  /// Update User
+  Future<void> updateUser(String userId, Map<String, String> updateData) async {
+    await _firestore.collection('users').doc(userId).update(updateData);
+  }
+
+  /// Get User Details by Id
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserById(
       String userId) async {
     return await _firestore.collection('users').doc(userId).get();
   }
 
-  // Get User Details by Email
+  /// Get User Details by Email
   Future<QuerySnapshot<Map<String, dynamic>>> getUserByEmail(
       String email) async {
     return await _firestore
@@ -48,7 +53,7 @@ class FirebaseManager {
         .get();
   }
 
-  // Get User Details by Phone Number
+  /// Get User Details by Phone Number
   Future<QuerySnapshot<Map<String, dynamic>>> getUserByPhoneNumber(
       String phoneNumber) async {
     return await _firestore
@@ -58,19 +63,17 @@ class FirebaseManager {
         .get();
   }
 
-  // Update User
-  Future<void> updateUser(String userId, Map<String, String> updateData) async {
-    await _firestore.collection('users').doc(userId).update(updateData);
+  /// Get Users Details (Multiple Users at once)
+  Future<QuerySnapshot<Map<String, dynamic>>> getUsersDetails(
+      List<String> usersIds) async {
+    return await _firestore
+        .collection('users')
+        .where(FieldPath.documentId, whereIn: usersIds)
+        .get();
   }
 
-  // Sign out
-  Future<void> signOut() async {
-    await _auth.signOut();
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Friends ////////////////////////////////////////////
-  // Add Friend
+  /// Add Friend
   Future<void> addFriend(Map<String, String> friends) async {
     await _firestore
         .collection('users')
@@ -80,7 +83,7 @@ class FirebaseManager {
         .set({'friendId': friends['friendId']});
   }
 
-  // Get Friends Ids
+  /// Get Friends Ids
   Stream<QuerySnapshot<Map<String, dynamic>>> getFriendsIds(String userId) {
     return _firestore
         .collection('users')
@@ -89,35 +92,25 @@ class FirebaseManager {
         .snapshots();
   }
 
-  // Get Friends Details
-  Future<QuerySnapshot<Map<String, dynamic>>> getFriendsDetails(
-      List<String> friendsIds) async {
-    return await _firestore
-        .collection('users')
-        .where(FieldPath.documentId, whereIn: friendsIds)
-        .get();
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Events ////////////////////////////////////////////
-  // Add Event
+  /// Add Event
   Future<String> addEvent(Map<String, dynamic> event) async {
     final docRef = await _firestore.collection('events').add(event);
     return docRef.id;
   }
 
-  // Edit Event
+  /// Edit Event
   Future<void> updateEvent(
       String eventId, Map<String, dynamic> updatedEvent) async {
     await _firestore.collection('events').doc(eventId).update(updatedEvent);
   }
 
-  // Remove Event
+  /// Remove Event
   Future<void> removeEvent(String eventId) async {
     await _firestore.collection('events').doc(eventId).delete();
   }
 
-  // Get Events
+  /// Get Events
   Stream<QuerySnapshot<Map<String, dynamic>>> getEvents(String userId) {
     return _firestore
         .collection('events')
@@ -125,70 +118,53 @@ class FirebaseManager {
         .snapshots();
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////// Gifts ////////////////////////////////////////////
-  // Add Gift
+  /// Add Gift
   Future<void> addGift(Map<String, dynamic> gift) async {
     await _firestore.collection('gifts').add(gift);
   }
 
-  // Update Gift
+  /// Update Gift
   Future<void> updateGift(
       String giftId, Map<String, dynamic> updatedEvent) async {
     await _firestore.collection('gifts').doc(giftId).update(updatedEvent);
   }
 
-  // Remove Gift
+  /// Remove Gift
   Future<void> removeGift(String giftId) async {
     await _firestore.collection('gifts').doc(giftId).delete();
   }
 
-  // Get Gift Details
+  /// Get Gift Details
   Stream<DocumentSnapshot> getGift(String giftId) {
     return _firestore.collection('gifts').doc(giftId).snapshots();
   }
 
-  // Get Gifts
-  Stream<QuerySnapshot<Map<String, dynamic>>> getGiftsByEventId(String eventId) {
+  /// Get Gifts
+  Stream<QuerySnapshot<Map<String, dynamic>>> getGiftsByEventId(
+      String eventId) {
     return _firestore
         .collection('gifts')
         .where('eventId', isEqualTo: eventId)
         .snapshots();
   }
 
-  // Get Pledged Gifts
+  /// Get Pledged Gifts
   Stream<QuerySnapshot<Map<String, dynamic>>> getPLedgedGifts(String userId) {
     return _firestore
         .collection('gifts')
         .where('userId', isEqualTo: userId)
         .where('status', isEqualTo: false)
+        .orderBy('pledgeDate', descending: true)
         .snapshots();
   }
 
-
-
-  // Pledge Gift
-  Future<void> updateGiftStatus(String giftId) async {
-    await _firestore.collection('gifts').doc(giftId).update({'status': false});
-  }
-
-  // Add Pledged User ID
-  Future<void> addPledgedUserName(String giftId, String userName) async {
-    await _firestore
+  /// Get My Pledged Gifts
+  Stream<QuerySnapshot<Map<String, dynamic>>> getMyPLedgedGifts(String userId) {
+    return _firestore
         .collection('gifts')
-        .doc(giftId)
-        .update({'pledgedUserName': userName});
+        .where('status', isEqualTo: false)
+        .where('pledgeUserId', isEqualTo: userId)
+        .snapshots();
   }
-
-  // Add Pledged Due Date
-  Future<void> addPledgedDate(String giftId, String dueDate) async {
-    await _firestore
-        .collection('gifts')
-        .doc(giftId)
-        .update({'dueDate': dueDate});
-  }
-
-
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
 }

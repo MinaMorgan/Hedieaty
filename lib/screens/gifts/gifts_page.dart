@@ -60,12 +60,14 @@ class _GiftsPageState extends State<GiftsPage> {
                   isPublic: eventIsPublic,
                 );
               },
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 const begin = Offset(0.0, 1.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
 
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: curve));
                 var offsetAnimation = animation.drive(tween);
 
                 return SlideTransition(
@@ -172,7 +174,8 @@ class _GiftsPageState extends State<GiftsPage> {
                 }
 
                 // Apply sorting and filtering
-                final gifts = _controller.filterAndSortGifts(snapshot.data!, _selectedSortOption, _selectedCategory);
+                final gifts = _controller.filterAndSortGifts(
+                    snapshot.data!, _selectedSortOption, _selectedCategory);
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(8.0),
@@ -220,8 +223,6 @@ class _GiftsPageState extends State<GiftsPage> {
       ),
     );
   }
-
-
 
   Future<void> _editGift(Map<String, dynamic> gift) async {
     showDialog(

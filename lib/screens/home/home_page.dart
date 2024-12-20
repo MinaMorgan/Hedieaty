@@ -63,7 +63,8 @@ class _HomePageState extends State<HomePage> {
                     return const Center(child: Text('No friends found.'));
                   }
 
-                  final friends = controller.filterFriends(snapshot.data!, _searchQuery);
+                  final friends =
+                      controller.filterFriends(snapshot.data!, _searchQuery);
 
                   if (friends.isEmpty) {
                     return const Center(

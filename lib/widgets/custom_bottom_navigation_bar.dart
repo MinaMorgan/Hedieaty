@@ -32,7 +32,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.notifications, size: 24),
               color: Colors.white,
-              onPressed: () => Navigator.pushReplacementNamed(context, '/notifications'),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/notifications'),
             ),
             IconButton(
               icon: const Icon(Icons.person, size: 24),

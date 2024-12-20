@@ -3,7 +3,8 @@ import '/models/friend_model.dart';
 import '/controller/user_controller.dart';
 
 class FriendController {
-  final SharedPreferencesManager _sharedPreferences = SharedPreferencesManager();
+  final SharedPreferencesManager _sharedPreferences =
+      SharedPreferencesManager();
   final UserController _userController = UserController();
 
   /// Adds a friend by email or phone number.

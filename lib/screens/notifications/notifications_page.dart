@@ -35,7 +35,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             itemCount: pledgedGifts.length,
             itemBuilder: (context, index) {
               final giftData =
-              pledgedGifts[index].data() as Map<String, dynamic>;
+                  pledgedGifts[index].data() as Map<String, dynamic>;
 
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -57,7 +57,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     children: [
                       const SizedBox(height: 4.0),
                       Text(
-                        'Pledged by: ${giftData['pledgedUserName']}',
+                        'Pledged by: ${giftData['pledgeUserName']}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -65,7 +65,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       ),
                       const SizedBox(height: 8.0),
                       Text(
-                        'Date: ${giftData['dueDate']}',
+                        'Date: ${giftData['pledgeDate']}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -76,7 +76,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   onTap: () {
                     Navigator.pushNamed(context, '/giftDetails', arguments: {
                       'giftId': pledgedGifts[index].id,
-                      'allowPledge': false
+                      'allowPledge': false,
                     });
                   },
                 ),
