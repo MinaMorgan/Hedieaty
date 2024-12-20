@@ -13,8 +13,7 @@ class FriendController {
 
       final friendId = await _userController.getUserId(isAddingByEmail, input);
 
-      //TODO: REMOVE THE FOLLOWING COMMENT
-      if (friendId != null /*&& friendId != currentUserId*/) {
+      if (friendId != null && friendId != currentUserId) {
         FriendModel friend = FriendModel(
           userId: currentUserId,
           friendId: friendId,

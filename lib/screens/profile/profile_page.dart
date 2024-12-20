@@ -18,6 +18,8 @@ class _ProfilePageState extends State<ProfilePage> {
   late String phoneNumber;
   late String photoUrl;
 
+  bool isLoading = true; // Add this flag
+
   @override
   void initState() {
     super.initState();
@@ -30,12 +32,22 @@ class _ProfilePageState extends State<ProfilePage> {
       name = userDetails['name'];
       email = userDetails['email'];
       phoneNumber = userDetails['phoneNumber'];
-      photoUrl = userDetails['photoUrl'];
+      photoUrl = userDetails['photoURL'];
+      isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: const GradientAppBar(title: 'Profile'),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: const GradientAppBar(title: 'Profile'),
       body: SingleChildScrollView(
@@ -48,7 +60,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Profile Picture
                 CircleAvatar(
                   radius: 50,
-                  backgroundImage: NetworkImage(photoUrl),
+                  backgroundImage: photoUrl.isNotEmpty
+                      ? NetworkImage(
+                          photoUrl) // Firebase profile photo if available
+                      : const AssetImage('assets/images/profile.png')
+                          as ImageProvider,
                 ),
                 const SizedBox(height: 16.0),
                 // User Details
@@ -67,7 +83,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   phoneNumber,
                   style: const TextStyle(fontSize: 16.0, color: Colors.grey),
                 ),
-
                 const SizedBox(height: 24.0),
 
                 // Edit Profile Button
@@ -82,15 +97,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
-
                 const SizedBox(height: 16.0),
 
                 // View My Pledged Gifts
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/pledgedGifts', arguments: {
-                      'userId': sharedPreferences.getUserId(),
-                    });
+                    Navigator.pushNamed(context, '/pledgedGifts');
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E88E5)),
