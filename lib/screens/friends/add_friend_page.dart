@@ -43,6 +43,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  key: const Key('addByEmailButton'),
                   onPressed: () => _toggleInputType(true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isAddingByEmail
@@ -53,6 +54,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                       style: TextStyle(color: Colors.white)),
                 ),
                 ElevatedButton(
+                  key: const Key('addByPhoneButton'),
                   onPressed: () => _toggleInputType(false),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: !isAddingByEmail
@@ -66,6 +68,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
             ),
             const SizedBox(height: 16),
             TextField(
+              key: const Key('inputField'),
               controller: _inputController,
               decoration: InputDecoration(
                 labelText:
@@ -80,10 +83,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
+              key: const Key('addFriendButton'),
               onPressed: () async {
                 final input = _inputController.text.trim();
                 if (_isValidInput(input)) {
-                  if (await controller.addFriend(isAddingByEmail,input)) {
+                  if (await controller.addFriend(isAddingByEmail, input)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Friend added successfully!'),

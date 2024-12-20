@@ -16,19 +16,13 @@ class AddGiftPage extends StatefulWidget {
   State<AddGiftPage> createState() => _AddGiftPageState();
 }
 
-
 class _AddGiftPageState extends State<AddGiftPage> {
   final TextEditingController nameController = TextEditingController();
-
   final TextEditingController descriptionController = TextEditingController();
-
   final TextEditingController priceController = TextEditingController();
-
   final GiftController controller = GiftController();
-
   final _formKey = GlobalKey<FormState>();
 
-  // List of categories for the dropdown
   final List<String> categories = [
     'Electronics',
     'Toys',
@@ -36,7 +30,7 @@ class _AddGiftPageState extends State<AddGiftPage> {
     'Fashion',
     'Home & Living',
     'Health & Beauty',
-    'other'
+    'Other',
   ];
 
   String? selectedCategory;
@@ -53,7 +47,9 @@ class _AddGiftPageState extends State<AddGiftPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Gift Name TextField with Key for testing
                 TextFormField(
+                  key: Key('nameField'),
                   controller: nameController,
                   decoration: InputDecoration(
                     labelText: 'Gift Name',
@@ -69,7 +65,10 @@ class _AddGiftPageState extends State<AddGiftPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                // Gift Description TextField with Key for testing
                 TextFormField(
+                  key: Key('descriptionField'),
                   controller: descriptionController,
                   maxLines: 3,
                   decoration: InputDecoration(
@@ -86,7 +85,10 @@ class _AddGiftPageState extends State<AddGiftPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                // Gift Category Dropdown with Key for testing
                 DropdownButtonFormField<String>(
+                  key: Key('categoryDropdown'),
                   value: selectedCategory,
                   items: categories.map((category) {
                     return DropdownMenuItem<String>(
@@ -101,7 +103,9 @@ class _AddGiftPageState extends State<AddGiftPage> {
                     ),
                   ),
                   onChanged: (value) {
-                    selectedCategory = value!;
+                    setState(() {
+                      selectedCategory = value!;
+                    });
                   },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -111,7 +115,10 @@ class _AddGiftPageState extends State<AddGiftPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+
+                // Gift Price TextField with Key for testing
                 TextFormField(
+                  key: Key('priceField'),
                   controller: priceController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
@@ -132,8 +139,11 @@ class _AddGiftPageState extends State<AddGiftPage> {
                   },
                 ),
                 const SizedBox(height: 24.0),
+
+                // Create Gift Button with Key for testing
                 Center(
                   child: ElevatedButton(
+                    key: Key('createButton'),
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         int price = int.parse(priceController.text.trim());

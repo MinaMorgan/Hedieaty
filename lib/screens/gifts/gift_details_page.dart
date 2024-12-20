@@ -32,6 +32,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
     try {
       // Update the gift status to pledged
       await controller.pledgeGift(gift);
+      setState(() {});
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -140,6 +141,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                 if (allowPledge && gift['status'])
                   Center(
                     child: ElevatedButton.icon(
+                      key: const Key('pledgeButton'), // For testing
                       onPressed: () => _pledgeGift(gift),
                       icon: const Icon(Icons.volunteer_activism,
                           color: Colors.white),

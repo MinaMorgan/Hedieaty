@@ -31,6 +31,7 @@ class _AddEventPageState extends State<AddEventPage> {
               children: [
                 // Event Title
                 TextFormField(
+                  key: const Key('titleField'),
                   controller: titleController,
                   decoration: InputDecoration(
                     labelText: 'Event Title',
@@ -49,6 +50,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
                 // Event Description
                 TextFormField(
+                  key: const Key('descriptionField'),
                   controller: descriptionController,
                   maxLines: 3,
                   decoration: InputDecoration(
@@ -68,6 +70,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
                 // Event Date Picker
                 TextFormField(
+                  key: const Key('dateField'),
                   controller: dateController,
                   readOnly: true,
                   decoration: InputDecoration(
@@ -97,12 +100,13 @@ class _AddEventPageState extends State<AddEventPage> {
                     const Text(
                       'Event Type',
                       style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     Row(
                       children: [
                         const Text('Private'),
                         Switch(
+                          key: const Key('eventTypeSwitch'),
                           value: isPublic,
                           onChanged: (value) {
                             setState(() {
@@ -121,6 +125,7 @@ class _AddEventPageState extends State<AddEventPage> {
                 // Save Button
                 Center(
                   child: ElevatedButton(
+                    key: const Key('saveButton'),
                     onPressed: _saveEvent,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E88E5),
@@ -151,7 +156,7 @@ class _AddEventPageState extends State<AddEventPage> {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      firstDate: DateTime(1900),
       lastDate: DateTime(2100),
     );
 

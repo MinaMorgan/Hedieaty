@@ -53,20 +53,22 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 30),
                     // Display selected profile image or a placeholder
                     GestureDetector(
+                      key: const Key('profileImagePicker'),
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 50,
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!) as ImageProvider
-                            : AssetImage('assets/images/profile.png'), // edit
+                            : const AssetImage('assets/images/profile.png'),
                         child: _profileImage == null
-                            ? Icon(Icons.camera_alt,
+                            ? const Icon(Icons.camera_alt,
                                 size: 40, color: Colors.white)
                             : null,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      key: const Key('nameField'),
                       controller: _nameController,
                       decoration: InputDecoration(
                         labelText: 'Name',
@@ -85,6 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
+                      key: const Key('phoneField'),
                       controller: _phoneNumberController,
                       decoration: InputDecoration(
                         labelText: 'Phone',
@@ -103,6 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
+                      key: const Key('emailField'),
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
@@ -126,6 +130,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
+                      key: const Key('passwordField'),
                       controller: _passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
@@ -145,6 +150,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
+                      key: const Key('confirmPasswordField'),
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
@@ -166,6 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24.0),
                     ElevatedButton(
+                      key: const Key('registerButton'),
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
                           if (await register()) {
@@ -183,6 +190,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: const Text('Register'),
                     ),
                     TextButton(
+                      key: const Key('loginRedirectButton'),
                       onPressed: () =>
                           Navigator.pushReplacementNamed(context, '/login'),
                       child: const Text(
